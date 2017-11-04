@@ -45,9 +45,6 @@ var _require4 = require('react-router-dom/Route'),
 
 var internals = {};
 
-// This gets incremented and used as a the `key` prop for each route
-internals.routeCount = 0;
-
 exports.Router = (_temp = _class = function (_React$PureComponent) {
     (0, _inherits3.default)(StrangeRouter, _React$PureComponent);
 
@@ -91,7 +88,7 @@ internals.renderRoutes = function (routes) {
 
         return React.createElement(Route, {
             exact: route.exact,
-            key: ++internals.routeCount,
+            key: i,
             path: path,
             strict: route.strict,
             render: function render(props) {
