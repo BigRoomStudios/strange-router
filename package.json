@@ -4,7 +4,8 @@
   "description": "A module to aid bringing configurable routes to react-router v4.x",
   "main": "dist/index.js",
   "directories": {
-    "lib": "lib"
+    "lib": "lib",
+    "dist": "dist"
   },
   "scripts": {
     "build": "babel lib --out-dir ./dist",
