@@ -1,0 +1,26 @@
+{
+  "name": "strange-router",
+  "version": "0.0.1",
+  "description": "A module to aid bringing configurable routes to react-router v4.x",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wswoodruff/strange-router.git"
+  },
+  "keywords": [
+    "react",
+    "react-router"
+  ],
+  "author": "William Woodruff <williamswoodruff@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wswoodruff/strange-router/issues"
+  },
+  "homepage": "https://github.com/wswoodruff/strange-router#readme"
+}
