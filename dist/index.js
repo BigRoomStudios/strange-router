@@ -24,7 +24,7 @@ var _inherits2 = require('babel-runtime/helpers/inherits');
 
 var _inherits3 = _interopRequireDefault(_inherits2);
 
-var _class, _temp;
+var _class, _temp, _class2, _temp2;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -75,19 +75,47 @@ exports.Router = (_temp = _class = function (_React$PureComponent) {
     routes: T.array.isRequired
 }, _temp);
 
+internals.routeWrapper = (_temp2 = _class2 = function (_React$PureComponent2) {
+    (0, _inherits3.default)(RouteWrapper, _React$PureComponent2);
+
+    function RouteWrapper() {
+        (0, _classCallCheck3.default)(this, RouteWrapper);
+        return (0, _possibleConstructorReturn3.default)(this, (RouteWrapper.__proto__ || (0, _getPrototypeOf2.default)(RouteWrapper)).apply(this, arguments));
+    }
+
+    (0, _createClass3.default)(RouteWrapper, [{
+        key: 'componentDidMount',
+        value: function componentDidMount() {}
+    }, {
+        key: 'render',
+        value: function render() {}
+    }]);
+    return RouteWrapper;
+}(React.PureComponent), _class2.propTypes = {
+    route: T.object
+}, _temp2);
+
 internals.renderRoutes = function (routes) {
 
     var renderRouteRecursive = function renderRouteRecursive(route, i) {
 
         // These relative paths seem to require a slash in front
 
-        var path = route.path;
-        if (path[0] !== '/') {
+        var path = String(route.path);
+        if (path && path[0] !== '/') {
             path = '/' + path;
         }
 
+        console.log('route', route);
+
+        var exact = false;
+        // let exact = true;
+        // if (path && path.includes(':')) {
+        //     exact = false;
+        // }
+
         return React.createElement(Route, {
-            exact: route.exact,
+            exact: exact,
             key: i,
             path: path,
             strict: route.strict,
@@ -104,6 +132,8 @@ internals.renderRoutes = function (routes) {
             }
         });
     };
+
+    console.log('routes', routes);
 
     return React.createElement(
         Switch,
