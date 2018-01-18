@@ -103,15 +103,23 @@ internals.renderRoutes = function (routes) {
 
         var path = String(route.path);
         if (path && path[0] !== '/') {
-            path = '/' + path;
+            // path = `/${path}`;
         }
 
-        console.log('route', route);
+        var isLeafRoute = true;
 
-        var exact = false;
-        // let exact = true;
-        // if (path && path.includes(':')) {
-        //     exact = false;
+        if (route.childRoutes) {
+            isLeafRoute = false;
+        }
+
+        var exact = route.exact || false;
+
+        if (isLeafRoute) {
+            exact = true;
+        }
+
+        // if (path && path.includes(':') || !route.childRoutes) {
+        // exact = false;
         // }
 
         return React.createElement(Route, {
