@@ -75,7 +75,7 @@ exports.Router = (_temp = _class = function (_React$PureComponent) {
     routes: T.array.isRequired
 }, _temp);
 
-internals.routeWrapper = (_temp2 = _class2 = function (_React$PureComponent2) {
+internals.routeComponentWrapper = (_temp2 = _class2 = function (_React$PureComponent2) {
     (0, _inherits3.default)(RouteWrapper, _React$PureComponent2);
 
     function RouteWrapper() {
@@ -84,69 +84,111 @@ internals.routeWrapper = (_temp2 = _class2 = function (_React$PureComponent2) {
     }
 
     (0, _createClass3.default)(RouteWrapper, [{
+        key: 'componentWillMount',
+        value: function componentWillMount() {
+            var _props2 = this.props,
+                route = _props2.route,
+                match = _props2.match,
+                location = _props2.location,
+                history = _props2.history;
+
+
+            if (route.onWillMount) {
+                route.onWillMount(route, match, location, history);
+            }
+        }
+    }, {
         key: 'componentDidMount',
-        value: function componentDidMount() {}
+        value: function componentDidMount() {
+            var _props3 = this.props,
+                route = _props3.route,
+                match = _props3.match,
+                location = _props3.location,
+                history = _props3.history;
+
+
+            if (route.onDidMount) {
+                route.onDidMount(route, match, location, history);
+            }
+        }
+    }, {
+        key: 'componentWillUnmount',
+        value: function componentWillUnmount() {
+            var _props4 = this.props,
+                route = _props4.route,
+                match = _props4.match,
+                location = _props4.location,
+                history = _props4.history;
+
+
+            if (route.onWillUnmount) {
+                route.onWillUnmount(route, match, location, history);
+            }
+        }
     }, {
         key: 'render',
-        value: function render() {}
+        value: function render() {
+
+            return this.props.children;
+        }
     }]);
     return RouteWrapper;
 }(React.PureComponent), _class2.propTypes = {
+    match: T.object,
+    location: T.object,
+    history: T.object,
     route: T.object
 }, _temp2);
 
 internals.renderRoutes = function (routes) {
 
-    var renderRouteRecursive = function renderRouteRecursive(route, i) {
+    var renderRouteRecursive = function renderRouteRecursive(pathPrefix, route) {
 
         // These relative paths seem to require a slash in front
 
-        var path = String(route.path);
-        if (path && path[0] !== '/') {
-            // path = `/${path}`;
-        }
+        // Remove any double slashes and we should be good!
+        var path = (pathPrefix + '/' + route.path).replace(/\/+/g, '/');
+
+        console.log('pathPrefix', pathPrefix);
+        console.log('path', path);
 
         var isLeafRoute = true;
 
-        if (route.childRoutes) {
-            isLeafRoute = false;
+        if (!route.childRoutes) {
+            isLeafRoute = true;
         }
 
-        var exact = route.exact || false;
-
-        if (isLeafRoute) {
-            exact = true;
-        }
-
-        // if (path && path.includes(':') || !route.childRoutes) {
-        // exact = false;
-        // }
+        var boundRenderFunc = renderRouteRecursive.bind(null, path);
 
         return React.createElement(Route, {
-            exact: exact,
-            key: i,
+            exact: route.exact,
+            key: path,
             path: path,
             strict: route.strict,
             render: function render(props) {
                 return React.createElement(
-                    route.component,
+                    internals.routeComponentWrapper,
                     (0, _extends3.default)({}, props, { route: route }),
-                    route.childRoutes && route.childRoutes.length && React.createElement(
-                        Switch,
-                        null,
-                        route.childRoutes.map(renderRouteRecursive)
+                    React.createElement(
+                        route.component,
+                        (0, _extends3.default)({}, props, { route: route }),
+                        route.childRoutes && route.childRoutes.length && React.createElement(
+                            Switch,
+                            null,
+                            route.childRoutes.map(boundRenderFunc)
+                        )
                     )
                 );
             }
         });
     };
 
-    console.log('routes', routes);
+    var boundRenderFunc = renderRouteRecursive.bind(null, '/');
 
     return React.createElement(
         Switch,
         null,
-        routes.map(renderRouteRecursive)
+        routes.map(boundRenderFunc)
     );
 };
 
