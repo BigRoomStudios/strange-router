@@ -148,24 +148,6 @@ internals.routeComponentLifecycleWrapper = (_temp2 = _class2 = function (_React$
     route: T.object
 }, _temp2);
 
-internals.getRoutesWithParams = function (routes) {
-
-    var routesWithParams = [];
-    var routesWithoutParams = [];
-
-    routes.forEach(function (childRoute) {
-
-        // Params are denoted by `:`
-        if (childRoute.path && childRoute.path.includes(':')) {
-            routesWithParams.push(childRoute);
-        } else {
-            routesWithoutParams.push(childRoute);
-        }
-    });
-
-    return { routesWithParams: routesWithParams, routesWithoutParams: routesWithoutParams };
-};
-
 internals.absolutizePath = function (pathPrefix, route) {
 
     // Remove any double slashes and we should be good!
@@ -173,7 +155,9 @@ internals.absolutizePath = function (pathPrefix, route) {
 
     var clone = (0, _assign2.default)({}, route);
 
-    clone.path = path;
+    if (route.path) {
+        clone.path = path;
+    }
 
     var boundAbsolutizePathFunc = internals.absolutizePath.bind(null, path);
 
@@ -184,44 +168,45 @@ internals.absolutizePath = function (pathPrefix, route) {
     return clone;
 };
 
-internals.buildRoutesFromAbsolutePaths = function () {
+internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes) {
 
-    // Build backwards, and split by slashes
-};
+    var getChildRoutesForBase = function getChildRoutesForBase(usingRoutes, baseRoute) {
 
-internals.reformatRoutes = function (routes) {
+        var routesClone = usingRoutes.slice();
+        var clone = (0, _assign2.default)({}, baseRoute);
 
-    // For react-router v4, routes with params (:myId for example)
-    // will only match if they are siblings to their parent routes.
+        clone.childRoutes = usingRoutes.filter(function (r) {
 
-    // The parent routes will also need to be set to exact: true
-    // in order for these to match
+            return r.path.split((baseRoute.path + '/').replace(/\/+/, '/')).length > 1;
+        });
 
-    // This may have something to do with the `Switch` component
-    // or just how the v4 router is setup, I'm unsure at the moment
+        clone.childRoutes = clone.childRoutes.map(getChildRoutesForBase.bind(null, clone.childRoutes));
 
-    if (route.childRoutes) {
-        var _internals$getRoutesW = internals.getRoutesWithParams(route.childRoutes),
-            routesWithParams = _internals$getRoutesW.routesWithParams,
-            routesWithoutParams = _internals$getRoutesW.routesWithoutParams;
+        return clone;
+    };
 
-        console.log('routesWithParams, routesWithoutParams', routesWithParams, routesWithoutParams);
+    // First look for a route that has root = true
+    var root = absolutizedRoutes.find(function (r) {
+        return r.root;
+    });
 
-        // route.childRoutes.forEach((childRoute) => {
-        //
-        //     // Params are denoted by `:`
-        //     if (childRoute.path && childRoute.path.includes(':')) {
-        //         childrenWithParams.push(childRoute);
-        //     }
-        //     else {
-        //         finalChildRoutes.push(childRoute);
-        //     }
-        // });
-        //
-        // if (parentRoute) {
-        //     parentRoute.addedRoutes = childrenWithParams;
-        // }
+    // Next try, grab the first instance that matches the base ''
+    // NOTE the remaining slash routes `/` will be used for catchalls like 404's
+    if (!root) {
+        root = absolutizedRoutes.find(function (r) {
+            return r.path.length === 1 && r.path === '/';
+        });
     }
+
+    var rootChildren = absolutizedRoutes.filter(function (r) {
+        return r.path !== '/';
+    });
+
+    root.childRoutes = rootChildren;
+
+    var structuredRootChildren = getChildRoutesForBase(rootChildren, root);
+
+    console.log('structuredRootChildren', structuredRootChildren);
 };
 
 internals.renderRoute = function (pathPrefix, route) {
@@ -275,7 +260,7 @@ internals.renderRoutes = function (routes) {
 
         if (parentRoute.childRoutes) {
 
-            var childRoutes = [].concat(parentRoute.childRoutes);
+            var childRoutes = [].concat(parentRoute.childRoutes).slice();
             delete parentRoute.childRoutes;
 
             return clone.concat(childRoutes.map(flattenChildRoutes));
@@ -303,14 +288,11 @@ internals.renderRoutes = function (routes) {
         return flat;
     };
 
-    console.log('flattenedChildRoutes', flattenedChildRoutes);
+    var flattenedRoutes = flattenArray(flattenedChildRoutes);
+    console.log('flattenedRoutes', flattenedRoutes);
 
-    console.log('flatty', flattenArray(flattenedChildRoutes));
-
-    // console.log(internals.absolutizePath('/', routes[0]));
-
-    // const boundReformatFunc = internals.reformatRoutes.bind(null, null);
-    // console.log(routes.map(boundReformatFunc));
+    var rebuiltRoutes = internals.buildRoutesFromAbsolutePaths(flattenedRoutes);
+    console.log('rebuiltRoutes', rebuiltRoutes);
 
     var boundRenderFunc = internals.renderRoute.bind(null, '/');
 
