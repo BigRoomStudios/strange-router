@@ -168,22 +168,22 @@ internals.absolutizePath = function (pathPrefix, route) {
     return clone;
 };
 
+internals.getChildRoutesForBase = function (usingRoutes, baseRoute) {
+
+    var routesClone = usingRoutes.slice();
+    var clone = (0, _assign2.default)({}, baseRoute);
+
+    clone.childRoutes = usingRoutes.filter(function (r) {
+
+        return r.path.split((baseRoute.path + '/').replace(/\/+/, '/')).length > 1;
+    });
+
+    clone.childRoutes = clone.childRoutes.map(internals.getChildRoutesForBase.bind(null, clone.childRoutes));
+
+    return clone;
+};
+
 internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes) {
-
-    var getChildRoutesForBase = function getChildRoutesForBase(usingRoutes, baseRoute) {
-
-        var routesClone = usingRoutes.slice();
-        var clone = (0, _assign2.default)({}, baseRoute);
-
-        clone.childRoutes = usingRoutes.filter(function (r) {
-
-            return r.path.split((baseRoute.path + '/').replace(/\/+/, '/')).length > 1;
-        });
-
-        clone.childRoutes = clone.childRoutes.map(getChildRoutesForBase.bind(null, clone.childRoutes));
-
-        return clone;
-    };
 
     // First look for a route that has root = true
     var root = absolutizedRoutes.find(function (r) {
@@ -204,9 +204,27 @@ internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes) {
 
     root.childRoutes = rootChildren;
 
-    var structuredRootChildren = getChildRoutesForBase(rootChildren, root);
+    var structuredRoot = internals.getChildRoutesForBase(rootChildren, root);
 
-    console.log('structuredRootChildren', structuredRootChildren);
+    // Remove siblings that are also children
+
+    var dedupeChildRoutes = function dedupeChildRoutes(arr) {
+
+        return arr.filter(function (item) {
+
+            return !arr.find(function (itm) {
+
+                if (!itm.childRoutes) {
+                    return false;
+                }
+
+                return true;
+            });
+        });
+    };
+
+    console.log('structuredRoot', structuredRoot);
+    console.log('dedupe(structuredRoot.childRoutes)', dedupeChildRoutes(structuredRoot.childRoutes));
 };
 
 internals.renderRoute = function (pathPrefix, route) {
