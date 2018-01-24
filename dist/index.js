@@ -212,14 +212,11 @@ internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes) {
 
         return arr.filter(function (item) {
 
-            return !arr.find(function (itm) {
+            return item.childRoutes.length !== 0;
+        }).map(function (itm) {
 
-                if (!itm.childRoutes) {
-                    return false;
-                }
-
-                return true;
-            });
+            itm.childRoutes = dedupeChildRoutes(itm.childRoutes);
+            return itm;
         });
     };
 
