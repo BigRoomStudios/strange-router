@@ -175,10 +175,10 @@ internals.getChildRoutesForBase = function (usingRoutes, baseRoute) {
 
     clone.childRoutes = usingRoutes.filter(function (r) {
 
-        return r.path.split((baseRoute.path + '/').replace(/\/+/, '/')).length > 1;
+        return r.path && r.path.split((baseRoute.path + '/').replace(/\/+/, '/')).length > 1;
     });
 
-    clone.childRoutes = clone.childRoutes.map(internals.getChildRoutesForBase.bind(null, clone.childRoutes));
+    clone.childRoutes = clone.childRoutes.map(internals.getChildRoutesForBase.bind(null, usingRoutes));
 
     return clone;
 };
@@ -186,63 +186,77 @@ internals.getChildRoutesForBase = function (usingRoutes, baseRoute) {
 internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes) {
 
     // First look for a route that has root = true
-    var root = absolutizedRoutes.find(function (r) {
+    var rootRoute = absolutizedRoutes.find(function (r) {
         return r.root;
     });
 
     // Next try, grab the first instance that matches the base ''
     // NOTE the remaining slash routes `/` will be used for catchalls like 404's
-    if (!root) {
-        root = absolutizedRoutes.find(function (r) {
-            return r.path.length === 1 && r.path === '/';
+
+    // Grab the first slash route if there isn't a root: true route
+    if (!rootRoute) {
+        rootRoute = absolutizedRoutes.find(function (r) {
+            return r.path === '/';
         });
     }
 
     var rootChildren = absolutizedRoutes.filter(function (r) {
         return r.path !== '/';
     });
+    rootRoute.childRoutes = rootChildren;
 
-    root.childRoutes = rootChildren;
+    var structuredRoot = internals.getChildRoutesForBase(rootChildren, rootRoute);
 
-    var structuredRoot = internals.getChildRoutesForBase(rootChildren, root);
+    // Remove siblings that are also childRoutes the next level down
+    // This is a fix for an artifact of only setting child routes based on absolute path
+    var dedupeChildRoutes = function dedupeChildRoutes(routes) {
 
-    // Remove siblings that are also children
+        var allChildRoutes = routes.reduce(function (collector, r) {
 
-    var dedupeChildRoutes = function dedupeChildRoutes(arr) {
+            if (!r.childRoutes) {
+                return collector;
+            }
 
-        return arr.filter(function (item) {
+            collector = collector.concat(r.childRoutes);
+            return collector;
+        }, []);
 
-            return item.childRoutes.length !== 0;
-        }).map(function (itm) {
+        return routes.filter(function (r) {
 
-            itm.childRoutes = dedupeChildRoutes(itm.childRoutes);
-            return itm;
+            return !allChildRoutes.find(function (cr) {
+
+                return cr.path === r.path;
+            });
+        }).map(function (r) {
+
+            if (r.childRoutes) {
+                r.childRoutes = dedupeChildRoutes(r.childRoutes);
+            }
+
+            return r;
         });
     };
 
-    console.log('structuredRoot', structuredRoot);
-    console.log('dedupe(structuredRoot.childRoutes)', dedupeChildRoutes(structuredRoot.childRoutes));
+    return dedupeChildRoutes(structuredRoot.childRoutes);
 };
 
-internals.renderRoute = function (pathPrefix, route) {
-
-    // Remove any double slashes and we should be good!
-    var path = ('/' + pathPrefix + '/' + route.path).replace(/\/+/g, '/');
-
-    var boundPathPrefixRenderFunc = internals.renderRoute.bind(null, path);
+// This method assumes every route has an absolute path
+internals.renderRoute = function (route) {
 
     if (!route.component) {
         // Fail with a useful error msg & info to help debugging
         console.log(route);
-        throw new Error('^^^^Component is falsy for route ' + path + ' logged above^^^^');
+        throw new Error('^^^^Component is falsy for route ' + route.path + ' logged above^^^^');
     }
 
     return React.createElement(Route, {
         exact: route.exact,
-        key: path,
-        path: path,
+        key: route.path,
+        path: route.path,
         strict: route.strict,
         render: function render(props) {
+
+            console.log('props.match', props.match);
 
             return React.createElement(
                 internals.routeComponentLifecycleWrapper,
@@ -250,10 +264,10 @@ internals.renderRoute = function (pathPrefix, route) {
                 React.createElement(
                     route.component,
                     (0, _extends3.default)({}, props, { route: route }),
-                    route.childRoutes && route.childRoutes.length && React.createElement(
+                    route.childRoutes && route.childRoutes.length !== 0 && React.createElement(
                         Switch,
                         null,
-                        route.childRoutes.map(boundPathPrefixRenderFunc)
+                        route.childRoutes.map(internals.renderRoute)
                     )
                 )
             );
@@ -309,12 +323,24 @@ internals.renderRoutes = function (routes) {
     var rebuiltRoutes = internals.buildRoutesFromAbsolutePaths(flattenedRoutes);
     console.log('rebuiltRoutes', rebuiltRoutes);
 
-    var boundRenderFunc = internals.renderRoute.bind(null, '/');
+    // We want to shift up any routes that have a param, denoted by `:`
+    // const paramsLevelShiftedUp =
+
+    var shiftUpParamRoutes = function shiftUpParamRoutes(routes) {
+
+        var newRoutes = routes.slice();
+    };
+
+    var slashRoutes = flattenedRoutes.filter(function (r) {
+
+        return r.path === '/';
+    }).map(internals.renderRoute);
 
     return React.createElement(
         Switch,
         null,
-        routes.map(boundRenderFunc)
+        slashRoutes,
+        rebuiltRoutes.map(internals.renderRoute)
     );
 };
 
