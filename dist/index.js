@@ -34,8 +34,8 @@ var T = require('prop-types');
 var _require = require('react-router-dom/matchPath'),
     MatchPath = _require.default;
 
-var _require2 = require('react-router-dom/Router'),
-    Router = _require2.default;
+var _require2 = require('react-router-redux'),
+    ConnectedRouter = _require2.ConnectedRouter;
 
 var _require3 = require('react-router-dom/Switch'),
     Switch = _require3.default;
@@ -62,7 +62,7 @@ exports.Router = (_temp = _class = function (_React$PureComponent) {
 
 
             return React.createElement(
-                Router,
+                ConnectedRouter,
                 {
                     history: history },
                 internals.renderRoutes(routes)
@@ -114,7 +114,7 @@ internals.renderRoutes = function (routes) {
 
 // This is useful for server-side rendering
 
-var computeMatch = Router.prototype.computeMatch;
+var computeMatch = ConnectedRouter.prototype.computeMatch;
 
 
 exports.matchRoutes = function (routes, pathname) {
