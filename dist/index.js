@@ -32,7 +32,7 @@ var _inherits2 = require('babel-runtime/helpers/inherits');
 
 var _inherits3 = _interopRequireDefault(_inherits2);
 
-var _class, _temp, _class2, _temp2;
+var _class, _temp;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -53,38 +53,12 @@ var _require4 = require('react-router-dom/Route'),
 
 var internals = {};
 
-exports.Router = (_temp = _class = function (_React$PureComponent) {
-    (0, _inherits3.default)(StrangeRouter, _React$PureComponent);
+exports.buildRoutes = function (routes) {
+    return internals.renderRoutes(routes);
+};
 
-    function StrangeRouter() {
-        (0, _classCallCheck3.default)(this, StrangeRouter);
-        return (0, _possibleConstructorReturn3.default)(this, (StrangeRouter.__proto__ || (0, _getPrototypeOf2.default)(StrangeRouter)).apply(this, arguments));
-    }
-
-    (0, _createClass3.default)(StrangeRouter, [{
-        key: 'render',
-        value: function render() {
-            var _props = this.props,
-                history = _props.history,
-                routes = _props.routes;
-
-
-            return React.createElement(
-                ConnectedRouter,
-                {
-                    history: history },
-                internals.renderRoutes(routes)
-            );
-        }
-    }]);
-    return StrangeRouter;
-}(React.PureComponent), _class.propTypes = {
-    history: T.object,
-    routes: T.array.isRequired
-}, _temp);
-
-internals.routeComponentLifecycleWrapper = (_temp2 = _class2 = function (_React$PureComponent2) {
-    (0, _inherits3.default)(RouteComponentLifecycleWrapper, _React$PureComponent2);
+internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$PureComponent) {
+    (0, _inherits3.default)(RouteComponentLifecycleWrapper, _React$PureComponent);
 
     function RouteComponentLifecycleWrapper() {
         (0, _classCallCheck3.default)(this, RouteComponentLifecycleWrapper);
@@ -94,11 +68,11 @@ internals.routeComponentLifecycleWrapper = (_temp2 = _class2 = function (_React$
     (0, _createClass3.default)(RouteComponentLifecycleWrapper, [{
         key: 'componentWillMount',
         value: function componentWillMount() {
-            var _props2 = this.props,
-                route = _props2.route,
-                match = _props2.match,
-                location = _props2.location,
-                history = _props2.history;
+            var _props = this.props,
+                route = _props.route,
+                match = _props.match,
+                location = _props.location,
+                history = _props.history;
 
 
             if (route.onWillMount) {
@@ -108,11 +82,11 @@ internals.routeComponentLifecycleWrapper = (_temp2 = _class2 = function (_React$
     }, {
         key: 'componentDidMount',
         value: function componentDidMount() {
-            var _props3 = this.props,
-                route = _props3.route,
-                match = _props3.match,
-                location = _props3.location,
-                history = _props3.history;
+            var _props2 = this.props,
+                route = _props2.route,
+                match = _props2.match,
+                location = _props2.location,
+                history = _props2.history;
 
 
             if (route.onDidMount) {
@@ -122,11 +96,11 @@ internals.routeComponentLifecycleWrapper = (_temp2 = _class2 = function (_React$
     }, {
         key: 'componentWillUnmount',
         value: function componentWillUnmount() {
-            var _props4 = this.props,
-                route = _props4.route,
-                match = _props4.match,
-                location = _props4.location,
-                history = _props4.history;
+            var _props3 = this.props,
+                route = _props3.route,
+                match = _props3.match,
+                location = _props3.location,
+                history = _props3.history;
 
 
             if (route.onWillUnmount) {
@@ -141,12 +115,12 @@ internals.routeComponentLifecycleWrapper = (_temp2 = _class2 = function (_React$
         }
     }]);
     return RouteComponentLifecycleWrapper;
-}(React.PureComponent), _class2.propTypes = {
+}(React.PureComponent), _class.propTypes = {
     match: T.object,
     location: T.object,
     history: T.object,
     route: T.object
-}, _temp2);
+}, _temp);
 
 internals.absolutizePath = function (pathPrefix, route) {
 
@@ -168,24 +142,52 @@ internals.absolutizePath = function (pathPrefix, route) {
     return clone;
 };
 
-internals.getChildRoutesForBase = function (usingRoutes, baseRoute) {
+internals.getChildRoutesForBase = function (forcedSiblingRoutes, usingRoutes, baseRoute) {
 
     var routesClone = usingRoutes.slice();
     var clone = (0, _assign2.default)({}, baseRoute);
 
     clone.childRoutes = usingRoutes.filter(function (r) {
 
-        return r.path && r.path.split((baseRoute.path + '/').replace(/\/+/, '/')).length > 1;
+        return r.path && r.path.split((baseRoute.path + '/').replace(/\/+/, '/').replace(/\\+/, '\\')).length > 1;
     });
 
-    clone.childRoutes = clone.childRoutes.map(internals.getChildRoutesForBase.bind(null, usingRoutes));
+    var extraSiblings = [];
+    clone.childRoutes.forEach(function (rt) {
+
+        if (rt.siblings) {
+            rt.siblings.forEach(function (sibId) {
+
+                var sibling = internals.getRouteById(forcedSiblingRoutes, sibId);
+                if (!sibling) {
+                    throw new Error('Something went wrong');
+                };
+                extraSiblings.push(sibling);
+
+                var moreSiblings = sibling.siblings;
+                if (moreSiblings) {
+                    moreSiblings.forEach(function (sId) {
+
+                        var sibling = internals.getRouteById(forcedSiblingRoutes, sId);
+                        if (!sibling) {
+                            throw new Error('Something went wrong');
+                        };
+                        extraSiblings.push(sibling);
+                    });
+                }
+            });
+        }
+    });
+
+    clone.childRoutes = clone.childRoutes.concat(extraSiblings);
+    clone.childRoutes = clone.childRoutes.map(internals.getChildRoutesForBase.bind(null, forcedSiblingRoutes, usingRoutes));
 
     return clone;
 };
 
-internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes) {
+internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes, regularRoutes, forcedSiblingRoutes) {
 
-    // First look for a route that has root = true
+    // First look for a route that has root === true
     var rootRoute = absolutizedRoutes.find(function (r) {
         return r.root;
     });
@@ -200,12 +202,12 @@ internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes) {
         });
     }
 
-    var rootChildren = absolutizedRoutes.filter(function (r) {
+    var rootChildren = regularRoutes.filter(function (r) {
         return r.path !== '/';
     });
     rootRoute.childRoutes = rootChildren;
 
-    var structuredRoot = internals.getChildRoutesForBase(rootChildren, rootRoute);
+    var structuredRoot = internals.getChildRoutesForBase(forcedSiblingRoutes, rootChildren, rootRoute);
 
     // Remove siblings that are also childRoutes the next level down
     // This is a fix for an artifact of only setting child routes based on absolute path
@@ -257,6 +259,12 @@ internals.renderRoute = function (route) {
         render: function render(props) {
 
             console.log('props.match', props.match);
+            console.log('route.childRoutes', route.childRoutes);
+
+            var matching = (route.childRoutes || []).find(function (rt) {
+                return rt.path === props.match.url;
+            });
+            console.log('matching', matching);
 
             return React.createElement(
                 internals.routeComponentLifecycleWrapper,
@@ -272,6 +280,12 @@ internals.renderRoute = function (route) {
                 )
             );
         }
+    });
+};
+
+internals.getRouteById = function (routes, id) {
+    return routes.find(function (rt) {
+        return rt._id === id;
     });
 };
 
@@ -317,19 +331,59 @@ internals.renderRoutes = function (routes) {
         return flat;
     };
 
-    var flattenedRoutes = flattenArray(flattenedChildRoutes);
+    var flattenedRoutes = flattenArray(flattenedChildRoutes).map(function (rt, i) {
+
+        // Give them all ids for later reference
+        rt._id = i;
+        return rt;
+    });
+
     console.log('flattenedRoutes', flattenedRoutes);
 
-    var rebuiltRoutes = internals.buildRoutesFromAbsolutePaths(flattenedRoutes);
-    console.log('rebuiltRoutes', rebuiltRoutes);
-
-    // We want to shift up any routes that have a param, denoted by `:`
-    // const paramsLevelShiftedUp =
-
-    var shiftUpParamRoutes = function shiftUpParamRoutes(routes) {
-
-        var newRoutes = routes.slice();
+    var matchingPath = function matchingPath(str) {
+        return flattenedRoutes.find(function (rt) {
+            return rt.path === str;
+        });
     };
+
+    // Because of how react-router v4's Switch works, we need to shift up
+    // any routes that
+    // 1) share a path with another route's full path AND
+    // 2) have a param, denoted by `:`
+    // We'll call them 'forced siblings'
+
+    // Lets grab some forced sibling info
+
+    var regularRoutes = [];
+    var forcedSiblingRoutes = [];
+
+    flattenedRoutes.forEach(function (rt) {
+
+        if (rt.path.includes(':')) {
+            var splitByColon = rt.path.split(':');
+            splitByColon.pop();
+            var pathBeforeParam = splitByColon.join(':');
+            // pop off the trailing slash
+            pathBeforeParam = pathBeforeParam.substring(0, pathBeforeParam.length - 1);
+            var matching = matchingPath(pathBeforeParam);
+            if (matching) {
+                matching.siblings = matching.siblings || [];
+                matching.siblings.push(rt._id);
+                forcedSiblingRoutes.push(rt);
+            } else {
+                regularRoutes.push(rt);
+            }
+        } else {
+            regularRoutes.push(rt);
+        }
+    });
+
+    console.log('regularRoutes', regularRoutes);
+    console.log('forcedSiblingRoutes', forcedSiblingRoutes);
+
+    var rebuiltRoutes = internals.buildRoutesFromAbsolutePaths(flattenedRoutes, regularRoutes, forcedSiblingRoutes);
+
+    console.log('rebuiltRoutes', rebuiltRoutes);
 
     var slashRoutes = flattenedRoutes.filter(function (r) {
 
