@@ -42,14 +42,11 @@ var T = require('prop-types');
 var _require = require('react-router-dom/matchPath'),
     MatchPath = _require.default;
 
-var _require2 = require('react-router-redux'),
-    ConnectedRouter = _require2.ConnectedRouter;
+var _require2 = require('react-router-dom/Switch'),
+    Switch = _require2.default;
 
-var _require3 = require('react-router-dom/Switch'),
-    Switch = _require3.default;
-
-var _require4 = require('react-router-dom/Route'),
-    Route = _require4.default;
+var _require3 = require('react-router-dom/Route'),
+    Route = _require3.default;
 
 var internals = {};
 
@@ -367,8 +364,8 @@ internals.renderRoutes = function (routes) {
             pathBeforeParam = pathBeforeParam.substring(0, pathBeforeParam.length - 1);
             var matching = matchingPath(pathBeforeParam);
             if (matching) {
-                matching.siblings = matching.siblings || [];
-                matching.siblings.push(rt._id);
+                // matching.siblings = matching.siblings || [];
+                // matching.siblings.push(rt._id);
                 forcedSiblingRoutes.push(rt);
             } else {
                 regularRoutes.push(rt);
@@ -390,6 +387,8 @@ internals.renderRoutes = function (routes) {
         return r.path === '/';
     }).map(internals.renderRoute);
 
+    console.log('slashRoutes', slashRoutes);
+
     return React.createElement(
         Switch,
         null,
@@ -400,28 +399,28 @@ internals.renderRoutes = function (routes) {
 
 // This is useful for server-side rendering
 
-var computeMatch = ConnectedRouter.prototype.computeMatch;
-
-
-exports.matchRoutes = function (routes, pathname) {
-    var branch = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-
-
-    routes.some(function (route) {
-
-        var match = route.path ? MatchPath(pathname, route) : branch.length ? branch[branch.length - 1].match // use parent match
-        : computeMatch(pathname); // use default "root" match
-
-        if (match) {
-            branch.push({ route: route, match: match });
-
-            if (route.childRoutes) {
-                exports.matchRoutes(route.childRoutes, pathname, branch);
-            }
-        }
-
-        return match;
-    });
-
-    return branch;
-};
+// const { computeMatch } = ConnectedRouter.prototype;
+//
+// exports.matchRoutes = (routes, pathname, branch = []) => {
+//
+//     routes.some((route) => {
+//
+//         const match = route.path
+//         ? MatchPath(pathname, route)
+//         : branch.length
+//         ? branch[branch.length - 1].match // use parent match
+//         : computeMatch(pathname); // use default "root" match
+//
+//         if (match) {
+//             branch.push({ route, match });
+//
+//             if (route.childRoutes) {
+//                 exports.matchRoutes(route.childRoutes, pathname, branch);
+//             }
+//         }
+//
+//         return match;
+//     });
+//
+//     return branch;
+// };
