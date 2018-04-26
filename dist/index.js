@@ -4,10 +4,6 @@ var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
 
 var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
 
-var _extends2 = require('babel-runtime/helpers/extends');
-
-var _extends3 = _interopRequireDefault(_extends2);
-
 var _assign = require('babel-runtime/core-js/object/assign');
 
 var _assign2 = _interopRequireDefault(_assign);
@@ -32,6 +28,10 @@ var _inherits2 = require('babel-runtime/helpers/inherits');
 
 var _inherits3 = _interopRequireDefault(_inherits2);
 
+var _extends2 = require('babel-runtime/helpers/extends');
+
+var _extends3 = _interopRequireDefault(_extends2);
+
 var _class, _temp;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -54,12 +54,80 @@ exports.buildRoutes = function (routes) {
     return internals.renderRoutes(routes);
 };
 
+internals.renderRoutes = function (routes) {
+
+    var absolutizedRoutes = routes.map(internals.absolutizePath.bind(null, '/'));
+    var flattenedRoutes = internals.flattenArray(absolutizedRoutes.map(internals.flattenChildRoutes)).filter(function (rt) {
+        return typeof rt.component !== 'undefined';
+    }); // Remove structural routes that don't have components
+
+    var rebuiltRoutes = internals.buildRoutesFromAbsolutePaths(flattenedRoutes);
+    var slashRoutes = flattenedRoutes.filter(function (r) {
+        return r.path === '/';
+    });
+
+    return React.createElement(
+        Switch,
+        null,
+        slashRoutes.sort(internals.sortRoutes('/')).map(internals.renderRoute),
+        rebuiltRoutes.sort(internals.sortRoutes('/')).map(internals.renderRoute)
+    );
+};
+
+// This method assumes every route has an absolute path
+internals.renderRoute = function (route) {
+
+    if (!route.component) {
+        // Fail with a useful error msg & info to help debugging
+        console.log(route);
+        throw new Error('Component is falsy for route "' + route.path + '"');
+    }
+
+    return React.createElement(Route, {
+        exact: route.exact,
+        key: route.path,
+        path: route.path,
+        strict: route.strict,
+        render: function render(props) {
+
+            return React.createElement(
+                internals.routeComponentLifecycleWrapper,
+                (0, _extends3.default)({}, props, { route: route }),
+                React.createElement(
+                    route.component,
+                    (0, _extends3.default)({}, props, { route: route }),
+                    route.childRoutes && route.childRoutes.length !== 0 && React.createElement(
+                        Switch,
+                        null,
+                        route.childRoutes.map(internals.renderRoute)
+                    )
+                )
+            );
+        }
+    });
+};
+
 internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$PureComponent) {
     (0, _inherits3.default)(RouteComponentLifecycleWrapper, _React$PureComponent);
 
-    function RouteComponentLifecycleWrapper() {
+    function RouteComponentLifecycleWrapper(props) {
         (0, _classCallCheck3.default)(this, RouteComponentLifecycleWrapper);
-        return (0, _possibleConstructorReturn3.default)(this, (RouteComponentLifecycleWrapper.__proto__ || (0, _getPrototypeOf2.default)(RouteComponentLifecycleWrapper)).apply(this, arguments));
+
+        var _this = (0, _possibleConstructorReturn3.default)(this, (RouteComponentLifecycleWrapper.__proto__ || (0, _getPrototypeOf2.default)(RouteComponentLifecycleWrapper)).call(this));
+
+        var route = props.route,
+            match = props.match,
+            location = props.location,
+            history = props.history;
+
+
+        if (typeof route.componentDidCatch === 'function') {
+            _this.componentDidCatch = function (err, info) {
+
+                route.componentDidCatch(err, info, route, match, location, history);
+            };
+        }
+        return _this;
     }
 
     (0, _createClass3.default)(RouteComponentLifecycleWrapper, [{
@@ -72,7 +140,7 @@ internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$Pu
                 history = _props.history;
 
 
-            if (route.onWillMount) {
+            if (typeof route.onWillMount === 'function') {
                 route.onWillMount(route, match, location, history);
             }
         }
@@ -86,7 +154,7 @@ internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$Pu
                 history = _props2.history;
 
 
-            if (route.onDidMount) {
+            if (typeof route.onDidMount === 'function') {
                 route.onDidMount(route, match, location, history);
             }
         }
@@ -100,7 +168,7 @@ internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$Pu
                 history = _props3.history;
 
 
-            if (route.onWillUnmount) {
+            if (typeof route.onWillUnmount === 'function') {
                 route.onWillUnmount(route, match, location, history);
             }
         }
@@ -139,50 +207,7 @@ internals.absolutizePath = function (pathPrefix, route) {
     return clone;
 };
 
-internals.getChildRoutesForBase = function (forcedSiblingRoutes, usingRoutes, baseRoute) {
-
-    var routesClone = usingRoutes.slice();
-    var clone = (0, _assign2.default)({}, baseRoute);
-
-    clone.childRoutes = usingRoutes.filter(function (r) {
-
-        return r.path && r.path.split((baseRoute.path + '/').replace(/\/+/, '/').replace(/\\+/, '\\')).length > 1;
-    });
-
-    var extraSiblings = [];
-    clone.childRoutes.forEach(function (rt) {
-
-        if (rt.siblings) {
-            rt.siblings.forEach(function (sibId) {
-
-                var sibling = internals.getRouteById(forcedSiblingRoutes, sibId);
-                if (!sibling) {
-                    throw new Error('Something went wrong');
-                };
-                extraSiblings.push(sibling);
-
-                var moreSiblings = sibling.siblings;
-                if (moreSiblings) {
-                    moreSiblings.forEach(function (sId) {
-
-                        var sibling = internals.getRouteById(forcedSiblingRoutes, sId);
-                        if (!sibling) {
-                            throw new Error('Something went wrong');
-                        };
-                        extraSiblings.push(sibling);
-                    });
-                }
-            });
-        }
-    });
-
-    clone.childRoutes = clone.childRoutes.concat(extraSiblings);
-    clone.childRoutes = clone.childRoutes.map(internals.getChildRoutesForBase.bind(null, forcedSiblingRoutes, usingRoutes));
-
-    return clone;
-};
-
-internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes, regularRoutes, forcedSiblingRoutes) {
+internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes) {
 
     // First look for a route that has root === true
     var rootRoute = absolutizedRoutes.find(function (r) {
@@ -199,228 +224,132 @@ internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes, regularRou
         });
     }
 
-    var rootChildren = regularRoutes.filter(function (r) {
+    var rootChildren = absolutizedRoutes.filter(function (r) {
         return r.path !== '/';
     });
     rootRoute.childRoutes = rootChildren;
 
-    var structuredRoot = internals.getChildRoutesForBase(forcedSiblingRoutes, rootChildren, rootRoute);
+    var structuredRoot = internals.getChildRoutesForBase(rootChildren, rootRoute);
 
-    // Remove siblings that are also childRoutes the next level down
-    // This is a fix for an artifact of only setting child routes based on absolute path
-    var dedupeChildRoutes = function dedupeChildRoutes(routes) {
-
-        var allChildRoutes = routes.reduce(function (collector, r) {
-
-            if (!r.childRoutes) {
-                return collector;
-            }
-
-            collector = collector.concat(r.childRoutes);
-            return collector;
-        }, []);
-
-        return routes.filter(function (r) {
-
-            return !allChildRoutes.find(function (cr) {
-
-                return cr.path === r.path;
-            });
-        }).map(function (r) {
-
-            if (r.childRoutes) {
-                r.childRoutes = dedupeChildRoutes(r.childRoutes);
-            }
-
-            return r;
-        });
-    };
-
-    return dedupeChildRoutes(structuredRoot.childRoutes);
+    return internals.dedupeChildRoutes(structuredRoot.childRoutes);
 };
 
-// This method assumes every route has an absolute path
-internals.renderRoute = function (route) {
+internals.getChildRoutesForBase = function (usingRoutes, baseRoute) {
 
-    if (!route.component) {
-        // Fail with a useful error msg & info to help debugging
-        console.log(route);
-        throw new Error('^^^^Component is falsy for route ' + route.path + ' logged above^^^^');
+    var routesClone = usingRoutes.slice();
+    var clone = (0, _assign2.default)({}, baseRoute);
+
+    clone.childRoutes = usingRoutes.filter(function (r) {
+        return r.path && r.path.split((baseRoute.path + '/').replace(/\/+/, '/')).length > 1;
+    });
+
+    clone.childRoutes = clone.childRoutes.map(internals.getChildRoutesForBase.bind(null, usingRoutes)).sort(internals.sortRoutes(baseRoute.path));
+
+    return clone;
+};
+
+internals.flattenChildRoutes = function (route) {
+
+    // Clone because we're building an army &&
+    // Transform to an array so we can play
+    var clone = [].concat((0, _assign2.default)({}, route));
+
+    var parentRoute = clone[0];
+
+    if (parentRoute.childRoutes) {
+
+        var childRoutes = [].concat(parentRoute.childRoutes).slice();
+        delete parentRoute.childRoutes;
+
+        return clone.concat(childRoutes.map(internals.flattenChildRoutes));
     }
 
-    return React.createElement(Route, {
-        exact: route.exact,
-        key: route.path,
-        path: route.path,
-        strict: route.strict,
-        render: function render(props) {
-
-            console.log('props.match', props.match);
-            console.log('route.childRoutes', route.childRoutes);
-
-            var matching = (route.childRoutes || []).find(function (rt) {
-                return rt.path === props.match.url;
-            });
-            console.log('matching', matching);
-
-            return React.createElement(
-                internals.routeComponentLifecycleWrapper,
-                (0, _extends3.default)({}, props, { route: route }),
-                React.createElement(
-                    route.component,
-                    (0, _extends3.default)({}, props, { route: route }),
-                    route.childRoutes && route.childRoutes.length !== 0 && React.createElement(
-                        Switch,
-                        null,
-                        route.childRoutes.map(internals.renderRoute)
-                    )
-                )
-            );
-        }
-    });
+    return clone;
 };
 
-internals.getRouteById = function (routes, id) {
-    return routes.find(function (rt) {
-        return rt._id === id;
-    });
-};
+internals.flattenArray = function (arr) {
 
-internals.renderRoutes = function (routes) {
+    var flat = [];
 
-    var absolutizedRoutes = routes.map(internals.absolutizePath.bind(null, '/'));
+    arr.forEach(function (arrItem) {
 
-    var flattenChildRoutes = function flattenChildRoutes(route) {
+        if (Array.isArray(arrItem)) {
 
-        // Clone because we're building an army &&
-        // Transform to an array so we can play
-        var clone = [].concat((0, _assign2.default)({}, route));
-
-        var parentRoute = clone[0];
-
-        if (parentRoute.childRoutes) {
-
-            var childRoutes = [].concat(parentRoute.childRoutes).slice();
-            delete parentRoute.childRoutes;
-
-            return clone.concat(childRoutes.map(flattenChildRoutes));
-        }
-
-        return clone;
-    };
-
-    var flattenedChildRoutes = absolutizedRoutes.map(flattenChildRoutes);
-
-    var flattenArray = function flattenArray(arr) {
-
-        var flat = [];
-
-        arr.forEach(function (arrItem) {
-
-            if (Array.isArray(arrItem)) {
-
-                flat = flat.concat([].concat((0, _toConsumableArray3.default)(flattenArray(arrItem))));
-            } else {
-                flat.push(arrItem);
-            }
-        });
-
-        return flat;
-    };
-
-    var flattenedRoutes = flattenArray(flattenedChildRoutes).map(function (rt, i) {
-
-        // Give them all ids for later reference
-        rt._id = i;
-        return rt;
-    });
-
-    console.log('flattenedRoutes', flattenedRoutes);
-
-    var matchingPath = function matchingPath(str) {
-        return flattenedRoutes.find(function (rt) {
-            return rt.path === str;
-        });
-    };
-
-    // Because of how react-router v4's Switch works, we need to shift up
-    // any routes that
-    // 1) share a path with another route's full path AND
-    // 2) have a param, denoted by `:`
-    // We'll call them 'forced siblings'
-
-    // Lets grab some forced sibling info
-
-    var regularRoutes = [];
-    var forcedSiblingRoutes = [];
-
-    flattenedRoutes.forEach(function (rt) {
-
-        if (rt.path.includes(':')) {
-            var splitByColon = rt.path.split(':');
-            splitByColon.pop();
-            var pathBeforeParam = splitByColon.join(':');
-            // pop off the trailing slash
-            pathBeforeParam = pathBeforeParam.substring(0, pathBeforeParam.length - 1);
-            var matching = matchingPath(pathBeforeParam);
-            if (matching) {
-                // matching.siblings = matching.siblings || [];
-                // matching.siblings.push(rt._id);
-                forcedSiblingRoutes.push(rt);
-            } else {
-                regularRoutes.push(rt);
-            }
+            flat = flat.concat([].concat((0, _toConsumableArray3.default)(internals.flattenArray(arrItem))));
         } else {
-            regularRoutes.push(rt);
+            flat.push(arrItem);
         }
     });
 
-    console.log('regularRoutes', regularRoutes);
-    console.log('forcedSiblingRoutes', forcedSiblingRoutes);
-
-    var rebuiltRoutes = internals.buildRoutesFromAbsolutePaths(flattenedRoutes, regularRoutes, forcedSiblingRoutes);
-
-    console.log('rebuiltRoutes', rebuiltRoutes);
-
-    var slashRoutes = flattenedRoutes.filter(function (r) {
-
-        return r.path === '/';
-    }).map(internals.renderRoute);
-
-    console.log('slashRoutes', slashRoutes);
-
-    return React.createElement(
-        Switch,
-        null,
-        slashRoutes,
-        rebuiltRoutes.map(internals.renderRoute)
-    );
+    return flat;
 };
 
-// This is useful for server-side rendering
+internals.dedupeChildRoutes = function (routes) {
 
-// const { computeMatch } = ConnectedRouter.prototype;
-//
-// exports.matchRoutes = (routes, pathname, branch = []) => {
-//
-//     routes.some((route) => {
-//
-//         const match = route.path
-//         ? MatchPath(pathname, route)
-//         : branch.length
-//         ? branch[branch.length - 1].match // use parent match
-//         : computeMatch(pathname); // use default "root" match
-//
-//         if (match) {
-//             branch.push({ route, match });
-//
-//             if (route.childRoutes) {
-//                 exports.matchRoutes(route.childRoutes, pathname, branch);
-//             }
-//         }
-//
-//         return match;
-//     });
-//
-//     return branch;
-// };
+    var allChildRoutes = routes.reduce(function (collector, r) {
+
+        if (!r.childRoutes) {
+            return collector;
+        }
+
+        collector = collector.concat(r.childRoutes);
+        return collector;
+    }, []);
+
+    return routes.filter(function (r) {
+
+        return !allChildRoutes.find(function (cr) {
+
+            return cr.path === r.path;
+        });
+    }).map(function (r) {
+
+        if (r.childRoutes) {
+            r.childRoutes = internals.dedupeChildRoutes(r.childRoutes);
+        }
+
+        return r;
+    });
+};
+
+internals.sortRoutes = function (basePath) {
+
+    return function (a, b) {
+
+        var pathAMinusBase = void 0;
+        var pathBMinusBase = void 0;
+
+        if (basePath === '/') {
+            pathAMinusBase = a.path;
+            pathBMinusBase = b.path;
+        } else {
+            pathAMinusBase = a.path.split(basePath)[1];
+            pathBMinusBase = b.path.split(basePath)[1];
+        }
+
+        var pathASplitSlash = pathAMinusBase.split('/').filter(function (pathPiece) {
+            return pathPiece !== '';
+        });
+        var pathBSplitSlash = pathBMinusBase.split('/').filter(function (pathPiece) {
+            return pathPiece !== '';
+        });
+
+        if (pathASplitSlash.length > pathBSplitSlash.length) {
+            return -1;
+        }
+
+        if (pathASplitSlash.length < pathBSplitSlash.length) {
+            return 1;
+        }
+
+        if (pathASplitSlash[0].startsWith(':')) {
+            return 1;
+        }
+
+        if (pathBSplitSlash[0].startsWith(':')) {
+            return -1;
+        }
+
+        return 0;
+    };
+};
