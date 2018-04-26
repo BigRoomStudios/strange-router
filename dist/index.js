@@ -53,8 +53,8 @@ exports.buildRoutes = function (routes) {
 
 internals.renderRoutes = function (routes) {
 
-    var absolutizedRoutes = routes.map(internals.absolutizePath.bind(null, '/'));
-    var flattenedRoutes = internals.flattenArray(absolutizedRoutes.map(internals.flattenChildRoutes)).filter(function (rt) {
+    var absolutizedRoutes = routes.map(internals.rAbsolutizePath.bind(null, '/'));
+    var flattenedRoutes = internals.rFlattenArray(absolutizedRoutes.map(internals.rFlattenChildRoutes)).filter(function (rt) {
         return typeof rt.component !== 'undefined';
     }); // Remove structural routes that don't have components
 
@@ -66,13 +66,13 @@ internals.renderRoutes = function (routes) {
     return React.createElement(
         Switch,
         null,
-        slashRoutes.sort(internals.sortRoutes('/')).map(internals.renderRoute),
-        rebuiltRoutes.sort(internals.sortRoutes('/')).map(internals.renderRoute)
+        slashRoutes.sort(internals.sortRoutes('/')).map(internals.rRenderRoute),
+        rebuiltRoutes.sort(internals.sortRoutes('/')).map(internals.rRenderRoute)
     );
 };
 
 // This method assumes every route has an absolute path
-internals.renderRoute = function (route) {
+internals.rRenderRoute = function (route) {
 
     if (!route.component) {
         throw new Error('Component is falsy for route "' + route.path + '"');
@@ -94,7 +94,7 @@ internals.renderRoute = function (route) {
                     route.childRoutes && route.childRoutes.length !== 0 && React.createElement(
                         Switch,
                         null,
-                        route.childRoutes.map(internals.renderRoute)
+                        route.childRoutes.map(internals.rRenderRoute)
                     )
                 )
             );
@@ -182,7 +182,7 @@ internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$Pu
     route: T.object
 }, _temp);
 
-internals.absolutizePath = function (pathPrefix, route) {
+internals.rAbsolutizePath = function (pathPrefix, route) {
 
     // Remove any double slashes and we should be good!
     var path = (pathPrefix + '/' + route.path).replace(/\/+/g, '/');
@@ -193,7 +193,7 @@ internals.absolutizePath = function (pathPrefix, route) {
         clone.path = path;
     }
 
-    var boundAbsolutizePathFunc = internals.absolutizePath.bind(null, path);
+    var boundAbsolutizePathFunc = internals.rAbsolutizePath.bind(null, path);
 
     if (clone.childRoutes) {
         clone.childRoutes = clone.childRoutes.map(boundAbsolutizePathFunc);
@@ -224,12 +224,12 @@ internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes) {
     });
     rootRoute.childRoutes = rootChildren;
 
-    var structuredRoot = internals.getChildRoutesForBase(rootChildren, rootRoute);
+    var structuredRoot = internals.rGetChildRoutesForBase(rootChildren, rootRoute);
 
-    return internals.dedupeChildRoutes(structuredRoot.childRoutes);
+    return internals.rDedupeChildRoutes(structuredRoot.childRoutes);
 };
 
-internals.getChildRoutesForBase = function (usingRoutes, baseRoute) {
+internals.rGetChildRoutesForBase = function (usingRoutes, baseRoute) {
 
     var routesClone = usingRoutes.slice();
     var clone = (0, _assign2.default)({}, baseRoute);
@@ -238,12 +238,12 @@ internals.getChildRoutesForBase = function (usingRoutes, baseRoute) {
         return r.path && r.path.split((baseRoute.path + '/').replace(/\/+/, '/')).length > 1;
     });
 
-    clone.childRoutes = clone.childRoutes.map(internals.getChildRoutesForBase.bind(null, usingRoutes)).sort(internals.sortRoutes(baseRoute.path));
+    clone.childRoutes = clone.childRoutes.map(internals.rGetChildRoutesForBase.bind(null, usingRoutes)).sort(internals.sortRoutes(baseRoute.path));
 
     return clone;
 };
 
-internals.flattenChildRoutes = function (route) {
+internals.rFlattenChildRoutes = function (route) {
 
     // Clone because we're building an army &&
     // Transform to an array so we can play
@@ -256,13 +256,13 @@ internals.flattenChildRoutes = function (route) {
         var childRoutes = [].concat(parentRoute.childRoutes).slice();
         delete parentRoute.childRoutes;
 
-        return clone.concat(childRoutes.map(internals.flattenChildRoutes));
+        return clone.concat(childRoutes.map(internals.rFlattenChildRoutes));
     }
 
     return clone;
 };
 
-internals.flattenArray = function (arr) {
+internals.rFlattenArray = function (arr) {
 
     var flat = [];
 
@@ -270,7 +270,7 @@ internals.flattenArray = function (arr) {
 
         if (Array.isArray(arrItem)) {
 
-            flat = flat.concat([].concat((0, _toConsumableArray3.default)(internals.flattenArray(arrItem))));
+            flat = flat.concat([].concat((0, _toConsumableArray3.default)(internals.rFlattenArray(arrItem))));
         } else {
             flat.push(arrItem);
         }
@@ -279,7 +279,7 @@ internals.flattenArray = function (arr) {
     return flat;
 };
 
-internals.dedupeChildRoutes = function (routes) {
+internals.rDedupeChildRoutes = function (routes) {
 
     var allChildRoutes = routes.reduce(function (collector, r) {
 
@@ -300,7 +300,7 @@ internals.dedupeChildRoutes = function (routes) {
     }).map(function (r) {
 
         if (r.childRoutes) {
-            r.childRoutes = internals.dedupeChildRoutes(r.childRoutes);
+            r.childRoutes = internals.rDedupeChildRoutes(r.childRoutes);
         }
 
         return r;
