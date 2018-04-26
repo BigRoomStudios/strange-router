@@ -18,7 +18,8 @@
   },
   "keywords": [
     "react",
-    "react-router"
+    "react-router",
+    "config"
   ],
   "author": "William Woodruff <williamswoodruff@gmail.com>",
   "license": "MIT",
@@ -34,9 +35,6 @@
     "babel-preset-stage-0": "^6.24.1"
   },
   "dependencies": {
-    "react-router-dom": "^4.2.2"
-  },
-  "peerDependencies": {
-    "react-router-dom": "^4.2.2"
+    "react-router-dom": "4.2.x"
   }
 }

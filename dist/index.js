@@ -39,14 +39,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var React = require('react');
 var T = require('prop-types');
 
-var _require = require('react-router-dom/matchPath'),
-    MatchPath = _require.default;
+var _require = require('react-router-dom/Switch'),
+    Switch = _require.default;
 
-var _require2 = require('react-router-dom/Switch'),
-    Switch = _require2.default;
-
-var _require3 = require('react-router-dom/Route'),
-    Route = _require3.default;
+var _require2 = require('react-router-dom/Route'),
+    Route = _require2.default;
 
 var internals = {};
 
@@ -78,8 +75,6 @@ internals.renderRoutes = function (routes) {
 internals.renderRoute = function (route) {
 
     if (!route.component) {
-        // Fail with a useful error msg & info to help debugging
-        console.log(route);
         throw new Error('Component is falsy for route "' + route.path + '"');
     }
 
