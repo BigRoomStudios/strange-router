@@ -53,10 +53,13 @@ exports.buildRoutes = function (routes) {
 
 internals.renderRoutes = function (routes) {
 
+    // Take the config structure and create absolute paths for each 'path'
     var absolutizedRoutes = routes.map(internals.rAbsolutizePath.bind(null, '/'));
+
+    // Deconstruct the config so we end up with a flat array of routes
     var flattenedRoutes = internals.rFlattenArray(absolutizedRoutes.map(internals.rFlattenChildRoutes)).filter(function (rt) {
         return typeof rt.component !== 'undefined';
-    }); // Remove structural routes that don't have components
+    }); // Remove structural routes that don't have components defined
 
     var rebuiltRoutes = internals.buildRoutesFromAbsolutePaths(flattenedRoutes);
     var slashRoutes = flattenedRoutes.filter(function (r) {
@@ -74,6 +77,7 @@ internals.renderRoutes = function (routes) {
 // This method assumes every route has an absolute path
 internals.rRenderRoute = function (route) {
 
+    // Give a more specific message if a component is defined but is falsy
     if (!route.component) {
         throw new Error('Component is falsy for route "' + route.path + '"');
     }
@@ -209,9 +213,6 @@ internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes) {
         return r.root;
     });
 
-    // Next try, grab the first instance that matches the base ''
-    // NOTE the remaining slash routes `/` will be used for catchalls like 404's
-
     // Grab the first slash route if there isn't a root: true route
     if (!rootRoute) {
         rootRoute = absolutizedRoutes.find(function (r) {
@@ -294,7 +295,6 @@ internals.rDedupeChildRoutes = function (routes) {
     return routes.filter(function (r) {
 
         return !allChildRoutes.find(function (cr) {
-
             return cr.path === r.path;
         });
     }).map(function (r) {
