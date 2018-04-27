@@ -1,13 +1,5 @@
 'use strict';
 
-var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
-
-var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
-
-var _assign = require('babel-runtime/core-js/object/assign');
-
-var _assign2 = _interopRequireDefault(_assign);
-
 var _getPrototypeOf = require('babel-runtime/core-js/object/get-prototype-of');
 
 var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
@@ -53,57 +45,61 @@ exports.buildRoutes = function (routes) {
 
 internals.renderRoutes = function (routes) {
 
-    // Take the config structure and create absolute paths for each 'path'
-    var absolutizedRoutes = routes.map(internals.rAbsolutizePath.bind(null, '/'));
+    var rootSlashRoutes = [];
+    var rest = [];
 
-    // Deconstruct the config so we end up with a flat array of routes
-    var flattenedRoutes = internals.rFlattenArray(absolutizedRoutes.map(internals.rFlattenChildRoutes)).filter(function (rt) {
-        return typeof rt.component !== 'undefined';
-    }); // Remove structural routes that don't have components defined
-
-    var rebuiltRoutes = internals.buildRoutesFromAbsolutePaths(flattenedRoutes);
-    var slashRoutes = flattenedRoutes.filter(function (r) {
-        return r.path === '/';
+    // At the moment, root slash route components will be ignored.
+    routes.forEach(function (r) {
+        return r.path === '/' ? rootSlashRoutes.push(r) : rest.push(r);
     });
+
+    var rootSlashChildren = rootSlashRoutes.map(function (r) {
+        return r.childRoutes ? r.childRoutes : [];
+    }).reduce(function (collector, r) {
+        return collector.concat(r);
+    }, []);
+
+    var toRender = rest.concat(rootSlashChildren);
 
     return React.createElement(
         Switch,
         null,
-        slashRoutes.sort(internals.sortRoutes('/')).map(internals.rRenderRoute),
-        rebuiltRoutes.sort(internals.sortRoutes('/')).map(internals.rRenderRoute)
+        toRender.sort(internals.sortRoutes).map(internals.rRenderRoute('/'))
     );
 };
 
-// This method assumes every route has an absolute path
-internals.rRenderRoute = function (route) {
+internals.rRenderRoute = function (basePath) {
 
-    // Give a more specific message if a component is defined but is falsy
-    if (!route.component) {
-        throw new Error('Component is falsy for route "' + route.path + '"');
-    }
+    return function (route) {
 
-    return React.createElement(Route, {
-        exact: route.exact,
-        key: route.path,
-        path: route.path,
-        strict: route.strict,
-        render: function render(props) {
+        var updatedPath = String(basePath + '/' + route.path).replace(/\/+/g, '/'); // Remove duplicate slashes
+        var RouteComponent = route.component || 'div';
 
-            return React.createElement(
-                internals.routeComponentLifecycleWrapper,
-                (0, _extends3.default)({}, props, { route: route }),
-                React.createElement(
-                    route.component,
+        return React.createElement(Route, {
+            exact: route.exact,
+            key: route.path,
+            path: updatedPath,
+            strict: route.strict,
+            render: function render(props) {
+
+                console.log('props', props);
+
+                return React.createElement(
+                    internals.routeComponentLifecycleWrapper,
                     (0, _extends3.default)({}, props, { route: route }),
-                    route.childRoutes && route.childRoutes.length !== 0 && React.createElement(
-                        Switch,
-                        null,
-                        route.childRoutes.map(internals.rRenderRoute)
+                    React.createElement(
+                        RouteComponent,
+                        (0, _extends3.default)({}, props, { route: route }),
+                        route.childRoutes && route.childRoutes.length !== 0 && React.createElement(
+                            Switch,
+                            null,
+                            route.childRoutes.sort(internals.sortRoutes).map(internals.rRenderRoute(updatedPath))
+                        )
                     )
-                )
-            );
-        }
-    });
+                );
+            }
+        });
+    };
 };
 
 internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$PureComponent) {
@@ -186,165 +182,36 @@ internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$Pu
     route: T.object
 }, _temp);
 
-internals.rAbsolutizePath = function (pathPrefix, route) {
+internals.sortRoutes = function (a, b) {
 
-    // Remove any double slashes and we should be good!
-    var path = (pathPrefix + '/' + route.path).replace(/\/+/g, '/');
+    // Sort routes by greater specificity (more slashes) on top, less specific on bottom
+    // Also, param routes go on the bottom, they will prevent everything below them from matching
 
-    var clone = (0, _assign2.default)({}, route);
+    var aPath = ('/' + a.path).replace(/\/+/g, '/');
+    var bPath = ('/' + b.path).replace(/\/+/g, '/');
 
-    if (route.path) {
-        clone.path = path;
+    var pathASplitSlash = aPath.split('/').filter(function (pathPiece) {
+        return pathPiece !== '';
+    });
+    var pathBSplitSlash = bPath.split('/').filter(function (pathPiece) {
+        return pathPiece !== '';
+    });
+
+    if (pathASplitSlash.length > pathBSplitSlash.length) {
+        return -1;
     }
 
-    var boundAbsolutizePathFunc = internals.rAbsolutizePath.bind(null, path);
-
-    if (clone.childRoutes) {
-        clone.childRoutes = clone.childRoutes.map(boundAbsolutizePathFunc);
+    if (pathASplitSlash.length < pathBSplitSlash.length) {
+        return 1;
     }
 
-    return clone;
-};
-
-internals.buildRoutesFromAbsolutePaths = function (absolutizedRoutes) {
-
-    // First look for a route that has root === true
-    var rootRoute = absolutizedRoutes.find(function (r) {
-        return r.root;
-    });
-
-    // Grab the first slash route if there isn't a root: true route
-    if (!rootRoute) {
-        rootRoute = absolutizedRoutes.find(function (r) {
-            return r.path === '/';
-        });
+    if (pathASplitSlash[0].startsWith(':')) {
+        return 1;
     }
 
-    var rootChildren = absolutizedRoutes.filter(function (r) {
-        return r.path !== '/';
-    });
-    rootRoute.childRoutes = rootChildren;
-
-    var structuredRoot = internals.rGetChildRoutesForBase(rootChildren, rootRoute);
-
-    return internals.rDedupeChildRoutes(structuredRoot.childRoutes);
-};
-
-internals.rGetChildRoutesForBase = function (usingRoutes, baseRoute) {
-
-    var routesClone = usingRoutes.slice();
-    var clone = (0, _assign2.default)({}, baseRoute);
-
-    clone.childRoutes = usingRoutes.filter(function (r) {
-        return r.path && r.path.split((baseRoute.path + '/').replace(/\/+/, '/')).length > 1;
-    });
-
-    clone.childRoutes = clone.childRoutes.map(internals.rGetChildRoutesForBase.bind(null, usingRoutes)).sort(internals.sortRoutes(baseRoute.path));
-
-    return clone;
-};
-
-internals.rFlattenChildRoutes = function (route) {
-
-    // Clone because we're building an army &&
-    // Transform to an array so we can play
-    var clone = [].concat((0, _assign2.default)({}, route));
-
-    var parentRoute = clone[0];
-
-    if (parentRoute.childRoutes) {
-
-        var childRoutes = [].concat(parentRoute.childRoutes).slice();
-        delete parentRoute.childRoutes;
-
-        return clone.concat(childRoutes.map(internals.rFlattenChildRoutes));
+    if (pathBSplitSlash[0].startsWith(':')) {
+        return -1;
     }
 
-    return clone;
-};
-
-internals.rFlattenArray = function (arr) {
-
-    var flat = [];
-
-    arr.forEach(function (arrItem) {
-
-        if (Array.isArray(arrItem)) {
-
-            flat = flat.concat([].concat((0, _toConsumableArray3.default)(internals.rFlattenArray(arrItem))));
-        } else {
-            flat.push(arrItem);
-        }
-    });
-
-    return flat;
-};
-
-internals.rDedupeChildRoutes = function (routes) {
-
-    var allChildRoutes = routes.reduce(function (collector, r) {
-
-        if (!r.childRoutes) {
-            return collector;
-        }
-
-        collector = collector.concat(r.childRoutes);
-        return collector;
-    }, []);
-
-    return routes.filter(function (r) {
-
-        return !allChildRoutes.find(function (cr) {
-            return cr.path === r.path;
-        });
-    }).map(function (r) {
-
-        if (r.childRoutes) {
-            r.childRoutes = internals.rDedupeChildRoutes(r.childRoutes);
-        }
-
-        return r;
-    });
-};
-
-internals.sortRoutes = function (basePath) {
-
-    return function (a, b) {
-
-        var pathAMinusBase = void 0;
-        var pathBMinusBase = void 0;
-
-        if (basePath === '/') {
-            pathAMinusBase = a.path;
-            pathBMinusBase = b.path;
-        } else {
-            pathAMinusBase = a.path.split(basePath)[1];
-            pathBMinusBase = b.path.split(basePath)[1];
-        }
-
-        var pathASplitSlash = pathAMinusBase.split('/').filter(function (pathPiece) {
-            return pathPiece !== '';
-        });
-        var pathBSplitSlash = pathBMinusBase.split('/').filter(function (pathPiece) {
-            return pathPiece !== '';
-        });
-
-        if (pathASplitSlash.length > pathBSplitSlash.length) {
-            return -1;
-        }
-
-        if (pathASplitSlash.length < pathBSplitSlash.length) {
-            return 1;
-        }
-
-        if (pathASplitSlash[0].startsWith(':')) {
-            return 1;
-        }
-
-        if (pathBSplitSlash[0].startsWith(':')) {
-            return -1;
-        }
-
-        return 0;
-    };
+    return 0;
 };
