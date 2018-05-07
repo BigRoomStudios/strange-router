@@ -86,8 +86,6 @@ internals.rRenderRoute = function (basePath) {
         var normalizedPath = internals.concatPaths(basePath, route.path);
         var RouteComponent = route.component;
 
-        console.log('normalizedPath', normalizedPath);
-
         return React.createElement(Route, {
             exact: route.exact,
             key: route.path,
