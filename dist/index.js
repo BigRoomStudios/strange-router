@@ -1,5 +1,9 @@
 'use strict';
 
+var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+
+var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+
 var _getPrototypeOf = require('babel-runtime/core-js/object/get-prototype-of');
 
 var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
@@ -24,10 +28,6 @@ var _extends2 = require('babel-runtime/helpers/extends');
 
 var _extends3 = _interopRequireDefault(_extends2);
 
-var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
-
-var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
-
 var _class, _temp;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -49,17 +49,16 @@ exports.buildRoutes = function (routes) {
     // with their children if available because at root level a slash route is the same
     // as a param route ({ ...path: ':myParam' })
 
-    var toRender = [].concat((0, _toConsumableArray3.default)(routes));
+    // First replace slash routes with their children in array form,
+    // then flatten out those arrays in place
 
-    // Replace slash routes with their children at their indices
-    for (var i = routes.length - 1; i > -1; --i) {
+    var toRender = internals.flatten(routes.map(function (r) {
 
-        var route = routes[i];
-
-        if (route && route.path === '/' && route.childRoutes) {
-            toRender.splice.apply(toRender, [i, 1].concat((0, _toConsumableArray3.default)(route.childRoutes)));
+        if (r.path === '/' && r.childRoutes) {
+            return r.childRoutes;
         }
-    }
+        return r;
+    }));
 
     return React.createElement(
         Switch,
@@ -188,4 +187,10 @@ internals.concatPaths = function (base, path) {
     path = path.startsWith('/') ? path.slice(1) : path; // /my-path -> my-path
 
     return base + '/' + path;
+};
+
+internals.flatten = function (arr) {
+    var _ref;
+
+    return (_ref = []).concat.apply(_ref, (0, _toConsumableArray3.default)(arr));
 };
