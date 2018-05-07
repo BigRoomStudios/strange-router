@@ -64,6 +64,7 @@ internals.renderRoutes = function (routes) {
 
     var toRender = [].concat((0, _toConsumableArray3.default)(routes));
 
+    // Replace slash routes with their children at their indices
     for (var i = routes.length; i > 1; --i) {
 
         var route = rootSlashRoutes[i];
