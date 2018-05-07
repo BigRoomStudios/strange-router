@@ -50,15 +50,15 @@ exports.buildRoutes = function (routes) {
 internals.renderRoutes = function (routes) {
 
     // Here we're replacing root slash routes (root config route with { ...path: '/' })
-    // with their children because otherwise they will match before anything else
+    // with their children if available because at root level a slash route is the same
+    // as a param route ({ ...path: ':myParam' })
 
-    // These routes will be keyed by their indices
     var rootSlashRoutes = {};
 
     routes.forEach(function (r, i) {
 
         if (r.path === '/') {
-            rootSlashRoutes[String(i)] = r;
+            rootSlashRoutes[String(i)] = r; // These routes will be keyed by their indices
         }
     });
 
@@ -83,20 +83,22 @@ internals.rRenderRoute = function (basePath) {
 
     return function (route) {
 
-        var updatedPath = String(basePath + '/' + route.path).replace(/\/+/g, '/'); // Remove duplicate slashes
+        var normalizedPath = internals.concatPaths(basePath, route.path);
         var RouteComponent = route.component;
+
+        console.log('normalizedPath', normalizedPath);
 
         return React.createElement(Route, {
             exact: route.exact,
             key: route.path,
-            path: updatedPath,
+            path: normalizedPath,
             strict: route.strict,
             render: function render(props) {
 
                 var childSwitcher = route.childRoutes ? React.createElement(
                     Switch,
                     null,
-                    route.childRoutes.map(internals.rRenderRoute(updatedPath))
+                    route.childRoutes.map(internals.rRenderRoute(normalizedPath))
                 ) : null;
 
                 return React.createElement(
@@ -192,3 +194,11 @@ internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$Pu
     history: T.object,
     route: T.object
 }, _temp);
+
+internals.concatPaths = function (base, path) {
+
+    base = base.endsWith('/') ? base.slice(0, -1) : base; // /my-path/ -> /my-path
+    path = path.startsWith('/') ? path.slice(1) : path; // /my-path -> my-path
+
+    return base + '/' + path;
+};
