@@ -24,6 +24,10 @@ var _extends2 = require('babel-runtime/helpers/extends');
 
 var _extends3 = _interopRequireDefault(_extends2);
 
+var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+
+var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+
 var _class, _temp;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -45,26 +49,33 @@ exports.buildRoutes = function (routes) {
 
 internals.renderRoutes = function (routes) {
 
-    var rootSlashRoutes = [];
-    var rest = [];
+    // Here we're replacing root slash routes (root config route with { ...path: '/' })
+    // with their children because otherwise they will match before anything else
 
-    // At the moment, root slash route components will be ignored.
-    routes.forEach(function (r) {
-        return r.path === '/' ? rootSlashRoutes.push(r) : rest.push(r);
+    // These routes will be keyed by their indices
+    var rootSlashRoutes = {};
+
+    routes.forEach(function (r, i) {
+
+        if (r.path === '/') {
+            rootSlashRoutes[String(i)] = r;
+        }
     });
 
-    var rootSlashChildren = rootSlashRoutes.map(function (r) {
-        return r.childRoutes ? r.childRoutes : [];
-    }).reduce(function (collector, r) {
-        return collector.concat(r);
-    }, []);
+    var toRender = [].concat((0, _toConsumableArray3.default)(routes));
 
-    var toRender = rest.concat(rootSlashChildren);
+    for (var i = routes.length; i > 1; --i) {
+
+        var route = rootSlashRoutes[i];
+        if (route && route.childRoutes) {
+            toRender.splice.apply(toRender, [i, 1].concat((0, _toConsumableArray3.default)(route.childRoutes)));
+        }
+    }
 
     return React.createElement(
         Switch,
         null,
-        toRender.sort(internals.sortRoutes).map(internals.rRenderRoute('/'))
+        toRender.map(internals.rRenderRoute('/'))
     );
 };
 
@@ -82,8 +93,6 @@ internals.rRenderRoute = function (basePath) {
             strict: route.strict,
             render: function render(props) {
 
-                console.log('props', props);
-
                 return React.createElement(
                     internals.routeComponentLifecycleWrapper,
                     (0, _extends3.default)({}, props, { route: route }),
@@ -93,7 +102,7 @@ internals.rRenderRoute = function (basePath) {
                         route.childRoutes && route.childRoutes.length !== 0 && React.createElement(
                             Switch,
                             null,
-                            route.childRoutes.sort(internals.sortRoutes).map(internals.rRenderRoute(updatedPath))
+                            route.childRoutes.map(internals.rRenderRoute(updatedPath))
                         )
                     )
                 );
@@ -181,37 +190,3 @@ internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$Pu
     history: T.object,
     route: T.object
 }, _temp);
-
-internals.sortRoutes = function (a, b) {
-
-    // Sort routes by greater specificity (more slashes) on top, less specific on bottom
-    // Also, param routes go on the bottom, they will prevent everything below them from matching
-
-    var aPath = ('/' + a.path).replace(/\/+/g, '/');
-    var bPath = ('/' + b.path).replace(/\/+/g, '/');
-
-    var pathASplitSlash = aPath.split('/').filter(function (pathPiece) {
-        return pathPiece !== '';
-    });
-    var pathBSplitSlash = bPath.split('/').filter(function (pathPiece) {
-        return pathPiece !== '';
-    });
-
-    if (pathASplitSlash.length > pathBSplitSlash.length) {
-        return -1;
-    }
-
-    if (pathASplitSlash.length < pathBSplitSlash.length) {
-        return 1;
-    }
-
-    if (pathASplitSlash[0].startsWith(':')) {
-        return 1;
-    }
-
-    if (pathBSplitSlash[0].startsWith(':')) {
-        return -1;
-    }
-
-    return 0;
-};
