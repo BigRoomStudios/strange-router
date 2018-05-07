@@ -84,7 +84,7 @@ internals.rRenderRoute = function (basePath) {
     return function (route) {
 
         var updatedPath = String(basePath + '/' + route.path).replace(/\/+/g, '/'); // Remove duplicate slashes
-        var RouteComponent = route.component || 'div';
+        var RouteComponent = route.component;
 
         return React.createElement(Route, {
             exact: route.exact,
@@ -93,18 +93,20 @@ internals.rRenderRoute = function (basePath) {
             strict: route.strict,
             render: function render(props) {
 
+                var childSwitcher = route.childRoutes ? React.createElement(
+                    Switch,
+                    null,
+                    route.childRoutes.map(internals.rRenderRoute(updatedPath))
+                ) : null;
+
                 return React.createElement(
                     internals.routeComponentLifecycleWrapper,
                     (0, _extends3.default)({}, props, { route: route }),
-                    React.createElement(
+                    RouteComponent ? React.createElement(
                         RouteComponent,
                         (0, _extends3.default)({}, props, { route: route }),
-                        route.childRoutes && route.childRoutes.length !== 0 && React.createElement(
-                            Switch,
-                            null,
-                            route.childRoutes.map(internals.rRenderRoute(updatedPath))
-                        )
-                    )
+                        childSwitcher
+                    ) : childSwitcher
                 );
             }
         });
