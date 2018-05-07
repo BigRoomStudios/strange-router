@@ -44,10 +44,6 @@ var _require2 = require('react-router-dom/Route'),
 var internals = {};
 
 exports.buildRoutes = function (routes) {
-    return internals.renderRoutes(routes);
-};
-
-internals.renderRoutes = function (routes) {
 
     // Here we're replacing root slash routes (root config route with { ...path: '/' })
     // with their children if available because at root level a slash route is the same
@@ -76,11 +72,11 @@ internals.renderRoutes = function (routes) {
     return React.createElement(
         Switch,
         null,
-        toRender.map(internals.rRenderRoute('/'))
+        toRender.map(internals.renderRoute('/'))
     );
 };
 
-internals.rRenderRoute = function (basePath) {
+internals.renderRoute = function (basePath) {
 
     return function (route) {
 
@@ -97,7 +93,7 @@ internals.rRenderRoute = function (basePath) {
                 var childSwitcher = route.childRoutes ? React.createElement(
                     Switch,
                     null,
-                    route.childRoutes.map(internals.rRenderRoute(normalizedPath))
+                    route.childRoutes.map(internals.renderRoute(normalizedPath))
                 ) : null;
 
                 return React.createElement(
