@@ -49,22 +49,14 @@ exports.buildRoutes = function (routes) {
     // with their children if available because at root level a slash route is the same
     // as a param route ({ ...path: ':myParam' })
 
-    var rootSlashRoutes = {};
-
-    routes.forEach(function (r, i) {
-
-        if (r.path === '/') {
-            rootSlashRoutes[String(i)] = r; // These routes will be keyed by their indices
-        }
-    });
-
     var toRender = [].concat((0, _toConsumableArray3.default)(routes));
 
     // Replace slash routes with their children at their indices
-    for (var i = routes.length; i > 1; --i) {
+    for (var i = routes.length - 1; i > -1; --i) {
 
-        var route = rootSlashRoutes[i];
-        if (route && route.childRoutes) {
+        var route = routes[i];
+
+        if (route && route.path === '/' && route.childRoutes) {
             toRender.splice.apply(toRender, [i, 1].concat((0, _toConsumableArray3.default)(route.childRoutes)));
         }
     }
