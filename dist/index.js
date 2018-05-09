@@ -59,6 +59,18 @@ internals.renderRoute = function (basePath) {
 
     return function (route) {
 
+        var routeRedirect = route.redirect ? (0, _extends3.default)({}, route.redirect) : null;
+
+        if (routeRedirect && routeRedirect.from) {
+            routeRedirect.from = internals.concatPaths(basePath, routeRedirect.from);
+        }
+
+        var redirect = routeRedirect ? React.createElement(Redirect, routeRedirect) : null;
+
+        if (!route.path && routeRedirect) {
+            return redirect;
+        }
+
         var normalizedPath = internals.concatPaths(basePath, route.path);
         var RouteComponent = route.component;
 
@@ -68,8 +80,6 @@ internals.renderRoute = function (basePath) {
             path: normalizedPath,
             strict: route.strict,
             render: function render(props) {
-
-                var redirect = route.redirect ? React.createElement(Redirect, route.redirect) : null;
 
                 var switcher = route.childRoutes ? React.createElement(
                     Switch,
