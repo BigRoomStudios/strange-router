@@ -76,7 +76,7 @@ internals.renderRoute = function (basePath) {
                     null,
                     route.childRoutes.map(internals.renderRoute(normalizedPath)),
                     redirect
-                ) : null;
+                ) : redirect;
 
                 return React.createElement(
                     internals.routeComponentLifecycleWrapper,
