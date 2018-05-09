@@ -41,29 +41,17 @@ var _require = require('react-router-dom/Switch'),
 var _require2 = require('react-router-dom/Route'),
     Route = _require2.default;
 
+var _require3 = require('react-router-dom/Redirect'),
+    Redirect = _require3.default;
+
 var internals = {};
 
 exports.buildRoutes = function (routes) {
 
-    // Here we're replacing root slash routes (root config route with { ...path: '/' })
-    // with their children if available because at root level a slash route is the same
-    // as a param route ({ ...path: ':myParam' })
-
-    // First replace slash routes with their children in array form,
-    // then flatten out those arrays in place
-
-    var toRender = internals.flatten(routes.map(function (r) {
-
-        if (r.path === '/' && r.childRoutes) {
-            return r.childRoutes;
-        }
-        return r;
-    }));
-
     return React.createElement(
         Switch,
         null,
-        toRender.map(internals.renderRoute('/'))
+        routes.map(internals.renderRoute('/'))
     );
 };
 
@@ -81,10 +69,13 @@ internals.renderRoute = function (basePath) {
             strict: route.strict,
             render: function render(props) {
 
-                var childSwitcher = route.childRoutes ? React.createElement(
+                var redirect = route.redirect ? React.createElement(Redirect, route.redirect) : null;
+
+                var switcher = route.childRoutes ? React.createElement(
                     Switch,
                     null,
-                    route.childRoutes.map(internals.renderRoute(normalizedPath))
+                    route.childRoutes.map(internals.renderRoute(normalizedPath)),
+                    redirect
                 ) : null;
 
                 return React.createElement(
@@ -93,8 +84,8 @@ internals.renderRoute = function (basePath) {
                     RouteComponent ? React.createElement(
                         RouteComponent,
                         (0, _extends3.default)({}, props, { route: route }),
-                        childSwitcher
-                    ) : childSwitcher
+                        switcher
+                    ) : switcher
                 );
             }
         });
