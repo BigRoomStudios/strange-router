@@ -46,6 +46,8 @@ const routes = [
                 componentDidCatch: ({ err, info, route, match, location, history }) => {
 
                     handleErr(err);
+                    // and / or
+                    history.replace('/onErr', { err, info });
                 }
             }
         ]
@@ -53,6 +55,10 @@ const routes = [
     {
         path: '404',
         component: FourOFour
+    },
+    {
+        path: 'onErr',
+        component: UhOhError
     }
 ];
 ```
