@@ -67,8 +67,9 @@ const routes = [
 ```js
 const React = require('react');
 const { Provider } = require('react-redux');
-const StrangeRouter = require('strange-router');
 const { ConnectedRouter } = require('react-router-redux');
+
+const StrangeRouter = require('strange-router');
 
 class App extends React.PureComponent {
 
