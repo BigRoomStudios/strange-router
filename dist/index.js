@@ -79,8 +79,8 @@ internals.renderRoute = function (basePath) {
             }
 
             if (redirect.from) {
-
                 if (redirect.from === '/') {
+
                     redirect.from = basePath;
 
                     // For some reason, redirect.from slash paths do not prepend the entire basePath to redirect's 'to'. It cuts off the last piece so we make it absolute here
@@ -90,7 +90,8 @@ internals.renderRoute = function (basePath) {
                     }
                 } else {
                     // redirect.from should not be an absolute path, it doesn't make much sense to redirect from an absolute path in a nested route situation
-                    // Ex: inside { path: '/my/path' } there's a { redirect: { from: '/another/weird/path', to: '...' } } -- which doesn't work. 'from' will never match since the redirect won't be rendered at '/another/weird/path'
+                    // Ex: inside { path: '/my/path' } there's a { redirect: { from: '/another/weird/path', to: '...' } } -- which doesn't work. 'from' will never match since the redirect won't be rendered at '/another/weird/path'.
+
                     // redirect.from is assumed to be relative
 
                     if (!redirect.from.startsWith(basePath)) {
@@ -149,7 +150,7 @@ internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$Pu
         if (typeof route.componentDidCatch === 'function') {
             _this.componentDidCatch = function (err, info) {
 
-                route.componentDidCatch(err, info, route, match, location, history);
+                route.componentDidCatch({ err: err, info: info, route: route, match: match, location: location, history: history });
             };
         }
         return _this;
@@ -166,7 +167,7 @@ internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$Pu
 
 
             if (typeof route.onWillMount === 'function') {
-                route.onWillMount(route, match, location, history);
+                route.onWillMount({ route: route, match: match, location: location, history: history });
             }
         }
     }, {
@@ -180,7 +181,7 @@ internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$Pu
 
 
             if (typeof route.onDidMount === 'function') {
-                route.onDidMount(route, match, location, history);
+                route.onDidMount({ route: route, match: match, location: location, history: history });
             }
         }
     }, {
@@ -194,7 +195,7 @@ internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$Pu
 
 
             if (typeof route.onWillUnmount === 'function') {
-                route.onWillUnmount(route, match, location, history);
+                route.onWillUnmount({ route: route, match: match, location: location, history: history });
             }
         }
     }, {
