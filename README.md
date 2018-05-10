@@ -23,7 +23,7 @@ const routes = [
             {
                 path: 'second', // matches '/first/second'
                 childRoutes: [
-                    { path: 'third' }, // matches '/first/second/third'
+                    { path: 'third', component: ThirdComponent }, // matches '/first/second/third'
                     { redirect: { to: '/404' } } // Catch all, redirects to absolute path '/404'
                 ]
             },
