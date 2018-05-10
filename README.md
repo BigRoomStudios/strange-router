@@ -24,7 +24,7 @@ const routes = [
                 path: 'second', // matches '/first/second'
                 childRoutes: [
                     { path: 'third', component: ThirdComponent }, // matches '/first/second/third'
-                    { redirect: { to: '/404' } } // Catch all, redirects to absolute path '/404'
+                    { redirect: { to: '/404' } } // catch all, redirects to absolute path '/404'
                 ]
             },
             { redirect: { from: 'oldPath', to: 'newPath' } } // '/first/oldPath' will redirect to '/first/newPath'
