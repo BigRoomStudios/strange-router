@@ -78,29 +78,27 @@ internals.renderRoute = function (basePath) {
                 throw new Error('No other properties are allowed alongside "redirect" in route configuration. Check childRoutes of "' + basePath + '"');
             }
 
-            if (redirect.from) {
-                if (redirect.from === '/') {
+            var redirectClone = (0, _extends3.default)({}, redirect);
 
-                    redirect.from = basePath;
+            if (typeof redirectClone.from === 'string') {
+                // redirect.from must be relative
+                redirectClone.from = internals.concatPaths(basePath, redirectClone.from);
+            }
 
-                    // For some reason, redirect.from slash paths do not prepend the entire basePath to redirect's 'to'. It cuts off the last piece so we make it absolute here
-
-                    if (!redirect.to.startsWith(basePath)) {
-                        redirect.to = internals.concatPaths(basePath, redirect.to);
-                    }
-                } else {
-                    // redirect.from should not be an absolute path, it doesn't make much sense to redirect from an absolute path in a nested route situation
-                    // Ex: inside { path: '/my/path' } there's a { redirect: { from: '/another/weird/path', to: '...' } } -- which doesn't work. 'from' will never match since the redirect won't be rendered at '/another/weird/path'.
-
-                    // redirect.from is assumed to be relative
-
-                    if (!redirect.from.startsWith(basePath)) {
-                        redirect.from = internals.concatPaths(basePath, redirect.from);
-                    }
+            if (typeof redirectClone.to === 'string') {
+                // If redirect.to is absolute, leave it be. Otherwise make it relative
+                redirectClone.to = redirectClone.to.startsWith('/') ? redirectClone.to : internals.concatPaths(basePath, redirectClone.to);
+            } else {
+                // to is an object
+                if (typeof redirectClone.to.pathname === 'string') {
+                    var pathname = redirectClone.to.pathname.startsWith('/') ? redirectClone.to.pathname : internals.concatPaths(basePath, redirectClone.to.pathname);
+                    redirectClone.to = (0, _extends3.default)({}, redirectClone.to, {
+                        pathname: pathname
+                    });
                 }
             }
 
-            return React.createElement(RedirectComponent, redirect);
+            return React.createElement(RedirectComponent, redirectClone);
         }
 
         var normalizedPath = internals.concatPaths(basePath, route.path);
