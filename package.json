@@ -14,19 +14,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wswoodruff/strange-router.git"
+    "url": "git+https://github.com/BigRoomStudios/strange-router.git"
   },
   "keywords": [
     "react",
     "react-router",
     "config"
   ],
-  "author": "William Woodruff <williamswoodruff@gmail.com>",
+  "author": "William Woodruff <bill@bigroomstudios.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/wswoodruff/strange-router/issues"
+    "url": "https://github.com/BigRoomStudios/strange-router/issues"
   },
-  "homepage": "https://github.com/wswoodruff/strange-router#readme",
+  "homepage": "https://github.com/BigRoomStudios/strange-router#readme",
   "devDependencies": {
     "babel-cli": "6.x.x",
     "babel-plugin-transform-runtime": "6.x.x",
