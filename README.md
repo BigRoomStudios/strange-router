@@ -49,7 +49,8 @@ const routes = [
                     // and / or
                     history.replace('/onErr', { err, info });
                 }
-            }
+            },
+            { redirect: { to: '/404' } } // catch all, redirects to absolute path '/404'
         ]
     },
     {
@@ -86,7 +87,7 @@ class App extends React.PureComponent {
         return (
             <Provider store={store}>
                 <ConnectedRouter history={history}>
-                    {StrangeRouter.buildRoutes(routes)}
+                    <StrangeRouter.Routes routes={routes} />
                 </ConnectedRouter>
             </Provider>
         );
