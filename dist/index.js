@@ -54,8 +54,8 @@ var _require3 = require('react-router-dom/Redirect'),
 
 var internals = {};
 
-exports.Routes = (_temp = _class = function (_React$PureComponent) {
-    (0, _inherits3.default)(Routes, _React$PureComponent);
+exports.Routes = (_temp = _class = function (_React$Component) {
+    (0, _inherits3.default)(Routes, _React$Component);
 
     function Routes() {
         (0, _classCallCheck3.default)(this, Routes);
@@ -76,7 +76,7 @@ exports.Routes = (_temp = _class = function (_React$PureComponent) {
         }
     }]);
     return Routes;
-}(React.PureComponent), _class.propTypes = {
+}(React.Component), _class.propTypes = {
     routes: T.array.isRequired
 }, _temp);
 
@@ -148,8 +148,8 @@ internals.renderRoute = function (basePath) {
     };
 };
 
-internals.routeComponentLifecycleWrapper = (_temp2 = _class2 = function (_React$PureComponent2) {
-    (0, _inherits3.default)(RouteComponentLifecycleWrapper, _React$PureComponent2);
+internals.routeComponentLifecycleWrapper = (_temp2 = _class2 = function (_React$PureComponent) {
+    (0, _inherits3.default)(RouteComponentLifecycleWrapper, _React$PureComponent);
 
     function RouteComponentLifecycleWrapper(props) {
         (0, _classCallCheck3.default)(this, RouteComponentLifecycleWrapper);
