@@ -4,6 +4,18 @@ var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
 
 var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
 
+var _extends2 = require('babel-runtime/helpers/extends');
+
+var _extends3 = _interopRequireDefault(_extends2);
+
+var _keys = require('babel-runtime/core-js/object/keys');
+
+var _keys2 = _interopRequireDefault(_keys);
+
+var _objectWithoutProperties2 = require('babel-runtime/helpers/objectWithoutProperties');
+
+var _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2);
+
 var _getPrototypeOf = require('babel-runtime/core-js/object/get-prototype-of');
 
 var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
@@ -24,19 +36,7 @@ var _inherits2 = require('babel-runtime/helpers/inherits');
 
 var _inherits3 = _interopRequireDefault(_inherits2);
 
-var _extends2 = require('babel-runtime/helpers/extends');
-
-var _extends3 = _interopRequireDefault(_extends2);
-
-var _keys = require('babel-runtime/core-js/object/keys');
-
-var _keys2 = _interopRequireDefault(_keys);
-
-var _objectWithoutProperties2 = require('babel-runtime/helpers/objectWithoutProperties');
-
-var _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2);
-
-var _class, _temp;
+var _class, _temp, _class2, _temp2;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -54,14 +54,31 @@ var _require3 = require('react-router-dom/Redirect'),
 
 var internals = {};
 
-exports.buildRoutes = function (routes) {
+exports.Routes = (_temp = _class = function (_React$Component) {
+    (0, _inherits3.default)(Routes, _React$Component);
 
-    return React.createElement(
-        Switch,
-        null,
-        routes.map(internals.renderRoute('/'))
-    );
-};
+    function Routes() {
+        (0, _classCallCheck3.default)(this, Routes);
+        return (0, _possibleConstructorReturn3.default)(this, (Routes.__proto__ || (0, _getPrototypeOf2.default)(Routes)).apply(this, arguments));
+    }
+
+    (0, _createClass3.default)(Routes, [{
+        key: 'render',
+        value: function render() {
+            var routes = this.props.routes;
+
+
+            return React.createElement(
+                Switch,
+                null,
+                routes.map(internals.renderRoute('/'))
+            );
+        }
+    }]);
+    return Routes;
+}(React.Component), _class.propTypes = {
+    routes: T.array.isRequired
+}, _temp);
 
 internals.renderRoute = function (basePath) {
 
@@ -131,13 +148,13 @@ internals.renderRoute = function (basePath) {
     };
 };
 
-internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$PureComponent) {
+internals.routeComponentLifecycleWrapper = (_temp2 = _class2 = function (_React$PureComponent) {
     (0, _inherits3.default)(RouteComponentLifecycleWrapper, _React$PureComponent);
 
     function RouteComponentLifecycleWrapper(props) {
         (0, _classCallCheck3.default)(this, RouteComponentLifecycleWrapper);
 
-        var _this = (0, _possibleConstructorReturn3.default)(this, (RouteComponentLifecycleWrapper.__proto__ || (0, _getPrototypeOf2.default)(RouteComponentLifecycleWrapper)).call(this));
+        var _this2 = (0, _possibleConstructorReturn3.default)(this, (RouteComponentLifecycleWrapper.__proto__ || (0, _getPrototypeOf2.default)(RouteComponentLifecycleWrapper)).call(this));
 
         var route = props.route,
             match = props.match,
@@ -146,12 +163,12 @@ internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$Pu
 
 
         if (typeof route.componentDidCatch === 'function') {
-            _this.componentDidCatch = function (err, info) {
+            _this2.componentDidCatch = function (err, info) {
 
                 route.componentDidCatch({ err: err, info: info, route: route, match: match, location: location, history: history });
             };
         }
-        return _this;
+        return _this2;
     }
 
     (0, _createClass3.default)(RouteComponentLifecycleWrapper, [{
@@ -204,12 +221,12 @@ internals.routeComponentLifecycleWrapper = (_temp = _class = function (_React$Pu
         }
     }]);
     return RouteComponentLifecycleWrapper;
-}(React.PureComponent), _class.propTypes = {
+}(React.PureComponent), _class2.propTypes = {
     match: T.object,
     location: T.object,
     history: T.object,
     route: T.object
-}, _temp);
+}, _temp2);
 
 internals.concatPaths = function (base, path) {
 
