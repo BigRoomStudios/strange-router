@@ -1,9 +1,9 @@
 'use strict';
 
 const PeerDepsExternal = require('rollup-plugin-peer-deps-external');
-const Resolve = require('rollup-plugin-node-resolve');
+const { nodeResolve: NodeResolve } = require('@rollup/plugin-node-resolve');
 const Commonjs = require('rollup-plugin-cjs-es');
-const Babel = require('rollup-plugin-babel');
+const { babel: Babel } = require('@rollup/plugin-babel');
 const { terser: Terser } = require('rollup-plugin-terser');
 const Filesize = require('rollup-plugin-filesize');
 
@@ -26,8 +26,8 @@ module.exports = [
         ],
         plugins: [
             PeerDepsExternal(),
-            Resolve(),
-            Babel({ exclude: ['node_modules/**'] }),
+            NodeResolve(),
+            Babel({ exclude: ['node_modules/**'], babelHelpers: 'bundled' }),
             Commonjs(),
             Filesize()
         ]
@@ -49,8 +49,8 @@ module.exports = [
         },
         plugins: [
             PeerDepsExternal(),
-            Resolve(),
-            Babel({ exclude: ['node_modules/**'] }),
+            NodeResolve(),
+            Babel({ exclude: ['node_modules/**'], babelHelpers: 'bundled' }),
             Commonjs(),
             Terser(),
             Filesize()
