@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@babel/core": "7.x.x",
+    "@babel/plugin-transform-runtime": "7.x.x",
     "@babel/preset-env": "7.x.x",
     "@babel/preset-react": "7.x.x",
     "@hapi/lab": "24.x.x",
@@ -49,5 +50,8 @@
     "rollup-plugin-filesize": "9.x.x",
     "rollup-plugin-peer-deps-external": "2.x.x",
     "rollup-plugin-terser": "7.x.x"
+  },
+  "dependencies": {
+    "@babel/runtime": "7.x.x"
   }
 }
