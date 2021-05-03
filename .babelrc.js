@@ -2,9 +2,8 @@
 
 module.exports = {
     presets: [
-        ['@babel/env', { modules: false }],
+        ['@babel/env'],
         ['@babel/react']
     ],
-    plugins: ['@babel/plugin-transform-runtime'],
     sourceType: 'unambiguous'
 };

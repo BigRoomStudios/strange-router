@@ -28,7 +28,7 @@ module.exports = [
         plugins: [
             PeerDepsExternal(),
             NodeResolve(),
-            Babel({ exclude: ['node_modules/**'], babelHelpers: 'runtime' }),
+            Babel({ exclude: ['node_modules/**'], babelHelpers: 'runtime', plugins: ['@babel/plugin-transform-runtime'] }),
             Commonjs({ nested: true }),
             Filesize()
         ]
@@ -51,7 +51,7 @@ module.exports = [
         plugins: [
             PeerDepsExternal(),
             NodeResolve(),
-            Babel({ exclude: ['node_modules/**'], babelHelpers: 'runtime' }),
+            Babel({ exclude: ['node_modules/**'], babelHelpers: 'bundled' }),
             Commonjs({ nested: true }),
             Terser(),
             Filesize()

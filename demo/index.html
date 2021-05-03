@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>strange-router demo</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/react-router-dom/umd/react-router-dom.js"></script>
+    <script>
+  
+      // dependency injection, basically
+      // alias ReactRouterDOM to ReactRouter, global at which strange-router expects
+      // to find implementation of react-router component (see umd rollup config, output.globals)
+      // this is unnecessary in cjs and esm environments in which you're importing code from node_modules,
+      // where strange-router's peerDependency on react-router is satisfied by react-router-dom
+      // depending on and therefore installing react-router
+      window.ReactRouter = ReactRouterDOM;
+    </script>
+    <script src="https://unpkg.com/prop-types@15.6/prop-types.js"></script>
+    <!-- TODO Copy from dist to the demo directory -->
+    <script src="strange-router.umd.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+
+      const Layout = ({ children }) => {
+        return (
+          <div style={{ outline: '10px solid red', width: '400px' }}>{children}</div>
+        );
+      }
+
+      const HomePage = () => {
+
+        return (
+          <div>
+            <h1>HOME PAGE</h1>
+            <ReactRouterDOM.NavLink to="/counter">COUNTER</ReactRouterDOM.NavLink>
+          </div>
+        );
+      };
+
+      const CounterPage = () => {
+
+        return (
+          <div>
+            <h1>COUNTER PAGE</h1>
+            <ReactRouterDOM.NavLink to="/">HOME</ReactRouterDOM.NavLink>
+          </div>
+        );
+      }
+
+      const App = () => {
+      
+        return (
+          <ReactRouterDOM.BrowserRouter history={window.History}>
+            <StrangeRouter.Routes
+              routes={{
+                path: '/',
+                component: Layout,
+                childRoutes: [
+                  {
+                    path: '/',
+                    component: HomePage,
+                    exact: true
+                  },
+                  {
+                    path: 'counter',
+                    component: CounterPage,
+                    exact: true
+                  }
+                ]
+              }} 
+            />
+          </ReactRouterDOM.BrowserRouter>
+        );
+      };
+
+      ReactDOM.render(
+        <App />,
+        document.getElementById('root')
+      );
+    </script>
+  </body>
+</html>
