@@ -12,7 +12,7 @@
     "build": "npm run clean && rollup -c",
     "clean": "rimraf dist",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "lab -dL",
+    "lint": "eslint .",
     "coveralls": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -40,9 +40,12 @@
     "@babel/plugin-transform-runtime": "7.x.x",
     "@babel/preset-env": "7.x.x",
     "@babel/preset-react": "7.x.x",
+    "@hapi/eslint-plugin": "5.x.x",
     "@hapi/lab": "24.x.x",
     "@rollup/plugin-babel": "5.x.x",
     "@rollup/plugin-node-resolve": "11.x.x",
+    "eslint": "7.x.x",
+    "eslint-plugin-react": "^7.23.2",
     "react-router": "5.x.x",
     "rimraf": "3.x.x",
     "rollup": "2.x.x",
