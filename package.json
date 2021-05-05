@@ -1,6 +1,6 @@
 {
   "name": "strange-router",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "A module to aid bringing configurable routes to react-router v4.x",
   "main": "dist/strange-router.js",
   "module": "dist/strange-router.module.js",
