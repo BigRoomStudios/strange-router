@@ -12,7 +12,7 @@
     "build": "npm run clean && rollup -c",
     "clean": "rimraf dist",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "lab -dL",
+    "lint": "eslint .",
     "coveralls": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -32,22 +32,29 @@
   "homepage": "https://github.com/BigRoomStudios/strange-router#readme",
   "peerDependencies": {
     "prop-types": "15.x.x",
-    "react": "16.x.x",
+    "react": ">=16 <18",
     "react-router": ">=4 <6"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "@babel/preset-react": "^7.0.0",
-    "@hapi/lab": "20.x.x",
+    "@babel/core": "7.x.x",
+    "@babel/plugin-transform-runtime": "7.x.x",
+    "@babel/preset-env": "7.x.x",
+    "@babel/preset-react": "7.x.x",
+    "@hapi/eslint-plugin": "5.x.x",
+    "@hapi/lab": "24.x.x",
+    "@rollup/plugin-babel": "5.x.x",
+    "@rollup/plugin-node-resolve": "13.x.x",
+    "eslint": "7.x.x",
+    "eslint-plugin-react": "7.x.x",
     "react-router": "5.x.x",
     "rimraf": "3.x.x",
-    "rollup": "1.x.x",
-    "rollup-plugin-babel": "4.x.x",
-    "rollup-plugin-cjs-es": "0.9.x",
-    "rollup-plugin-filesize": "6.x.x",
-    "rollup-plugin-node-resolve": "5.x.x",
+    "rollup": "2.x.x",
+    "rollup-plugin-cjs-es": "1.x.x",
+    "rollup-plugin-filesize": "9.x.x",
     "rollup-plugin-peer-deps-external": "2.x.x",
-    "rollup-plugin-terser": "5.x.x"
+    "rollup-plugin-terser": "7.x.x"
+  },
+  "dependencies": {
+    "@babel/runtime": "7.x.x"
   }
 }

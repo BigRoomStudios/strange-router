@@ -2,7 +2,8 @@
 
 module.exports = {
     presets: [
-        ['@babel/env', { modules: false }],
+        ['@babel/env'],
         ['@babel/react']
-    ]
+    ],
+    sourceType: 'unambiguous'
 };
