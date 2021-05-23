@@ -2,6 +2,11 @@
     "extends": [
         "plugin:@hapi/recommended"
     ],
+    "env": {
+        "jest": true,
+        "commonjs": true,
+        "es6": true
+    },
     "plugins": ["react"],
     "parserOptions": {
         "ecmaFeatures": {
