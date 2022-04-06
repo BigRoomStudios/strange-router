@@ -5,7 +5,7 @@
     <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/react-router-dom/umd/react-router-dom.js"></script>
+    <script src="https://unpkg.com/react-router-dom@5.3/umd/react-router-dom.js"></script>
     <script>
   
       // dependency injection, basically
@@ -26,7 +26,7 @@
 
       const Layout = ({ children }) => {
         return (
-          <div style={{ outline: '10px solid red', width: '400px' }}>{children}</div>
+          <div style={{ outline: '10px solid blue', width: '400px' }}>{children}</div>
         );
       }
 
@@ -34,6 +34,7 @@
 
         return (
           <div>
+            <ReactRouterDOM.NavLink to="/invalid-page">REDIRECT</ReactRouterDOM.NavLink>
             <h1>HOME PAGE</h1>
             <ReactRouterDOM.NavLink to="/counter">COUNTER</ReactRouterDOM.NavLink>
           </div>
@@ -44,10 +45,21 @@
 
         return (
           <div>
+            <ReactRouterDOM.NavLink to="/invalid-page">REDIRECT</ReactRouterDOM.NavLink>
             <h1>COUNTER PAGE</h1>
             <ReactRouterDOM.NavLink to="/">HOME</ReactRouterDOM.NavLink>
           </div>
         );
+      }
+
+      const NotFoundPage = () => {
+
+        return (
+          <div style={{ outline: '10px solid red', width: '400px' }}>
+            <h1>Not Found</h1>
+            <ReactRouterDOM.NavLink to="/">HOME</ReactRouterDOM.NavLink>
+          </div>
+        )
       }
 
       const App = () => {
@@ -55,22 +67,29 @@
         return (
           <ReactRouterDOM.BrowserRouter history={window.History}>
             <StrangeRouter.Routes
-              routes={{
-                path: '/',
-                component: Layout,
-                childRoutes: [
-                  {
-                    path: '/',
-                    component: HomePage,
-                    exact: true
-                  },
-                  {
-                    path: 'counter',
-                    component: CounterPage,
-                    exact: true
-                  }
-                ]
-              }} 
+              routes={[
+                {
+                  path: '404',
+                  component: NotFoundPage
+                },
+                {
+                  path: '/',
+                  component: Layout,
+                  childRoutes: [
+                    {
+                      path: '/',
+                      component: HomePage,
+                      exact: true
+                    },
+                    {
+                      path: 'counter',
+                      component: CounterPage,
+                      exact: true
+                    },
+                    { redirect: { to: '/404' } }
+                  ]
+               }
+            ]} 
             />
           </ReactRouterDOM.BrowserRouter>
         );
