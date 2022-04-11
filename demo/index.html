@@ -5,7 +5,7 @@
     <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/react-router-dom@5.3/umd/react-router-dom.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.production.min.js"></script>
     <script>
   
       // dependency injection, basically
@@ -66,24 +66,24 @@
       
         return (
           <ReactRouterDOM.BrowserRouter history={window.History}>
-            <StrangeRouter.Routes
+            <StrangeRouter.AppRoutes
               routes={[
                 {
                   path: '404',
-                  component: NotFoundPage
+                  element: <NotFoundPage/>
                 },
                 {
                   path: '/',
-                  component: Layout,
+                  element: <Layout/>,
                   childRoutes: [
                     {
                       path: '/',
-                      component: HomePage,
+                      element: <HomePage/>,
                       exact: true
                     },
                     {
                       path: 'counter',
-                      component: CounterPage,
+                      element: <CounterPage/>,
                       exact: true
                     },
                     { redirect: { to: '/404' } }
