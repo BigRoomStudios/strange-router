@@ -5,7 +5,13 @@
     <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.production.min.js"></script>
+    <!-- Load history -->
+    <script src="https://unpkg.com/history@5/umd/history.development.js" crossorigin></script>
+
+    <!-- https://github.com/remix-run/react-router/blob/59b319feaa12745a434afdef5cadfcabd01206f9/docs/getting-started/installation.md#html-script-tags -->
+    <!-- Load React Router and React Router DOM -->
+    <script src="https://unpkg.com/react-router@6/umd/react-router.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-router-dom@6/umd/react-router-dom.development.js" crossorigin></script>
     <script>
   
       // dependency injection, basically
@@ -14,7 +20,7 @@
       // this is unnecessary in cjs and esm environments in which you're importing code from node_modules,
       // where strange-router's peerDependency on react-router is satisfied by react-router-dom
       // depending on and therefore installing react-router
-      window.ReactRouter = ReactRouterDOM;
+      // window.ReactRouter = ReactRouterDOM;
     </script>
     <script src="https://unpkg.com/prop-types@15.6/prop-types.js"></script>
     <!-- TODO Copy from dist to the demo directory -->
@@ -25,8 +31,11 @@
     <script type="text/babel">
 
       const Layout = ({ children }) => {
+  
         return (
-          <div style={{ outline: '10px solid blue', width: '400px' }}>{children}</div>
+            <div style={{ outline: '10px solid blue', width: '400px' }}>
+              {children}
+            </div>
         );
       }
 
@@ -63,33 +72,32 @@
       }
 
       const App = () => {
-      
+        
         return (
-          <ReactRouterDOM.BrowserRouter history={window.History}>
+          <ReactRouterDOM.BrowserRouter>
             <StrangeRouter.AppRoutes
-              routes={[
-                {
-                  path: '404',
-                  element: <NotFoundPage/>
+                routes={[
+                  {
+                    path: '/',
+                    component: Layout,
+                    childRoutes: [
+                      {
+                        path: '/',
+                        component: HomePage
+                      },
+                      {
+                        path: 'counter',
+                        component: CounterPage
+                      },
+                      { redirect: { to: '/404' } }
+                    ]
                 },
                 {
-                  path: '/',
-                  element: <Layout/>,
-                  childRoutes: [
-                    {
-                      path: '/',
-                      element: <HomePage/>,
-                      exact: true
-                    },
-                    {
-                      path: 'counter',
-                      element: <CounterPage/>,
-                      exact: true
-                    },
-                    { redirect: { to: '/404' } }
-                  ]
-               }
-            ]} 
+                  path: '404',
+                  component: NotFoundPage
+                }
+              ]} 
+              
             />
           </ReactRouterDOM.BrowserRouter>
         );
