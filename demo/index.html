@@ -39,22 +39,70 @@
         );
       }
 
-      const HomePage = () => {
+      const LinkContainer = ({ children }) => {
+
+        return (
+          <div style={{ display: 'flex', justifyContent: 'space-evenly'}}>
+            {children}
+          </div>
+        );
+      }
+
+      const Back = () => {
+
+        const navigate = ReactRouterDOM.useNavigate();
+
+        return <button onClick={() => navigate(-1)}>Back</button>
+      }
+
+      const HomePage = ({ children }) => {
 
         return (
           <div>
-            <ReactRouterDOM.NavLink to="/invalid-page">REDIRECT</ReactRouterDOM.NavLink>
+            <LinkContainer>
+              <Back/>
+              <ReactRouterDOM.NavLink to="/invalid-page">REDIRECT</ReactRouterDOM.NavLink>
+              <ReactRouterDOM.NavLink to="counter">COUNTER</ReactRouterDOM.NavLink>
+            </LinkContainer>
             <h1>HOME PAGE</h1>
-            <ReactRouterDOM.NavLink to="/counter">COUNTER</ReactRouterDOM.NavLink>
+            <LinkContainer>
+              <Back/>
+              <ReactRouterDOM.NavLink to="/child/1">FIRST</ReactRouterDOM.NavLink>
+              <ReactRouterDOM.NavLink to="/child/2">SECOND</ReactRouterDOM.NavLink>
+            </LinkContainer>
+            <div>{children}</div>
           </div>
         );
       };
+
+      const DefaultHomePageChild = () => {
+
+        return (
+          <div>
+            <h2>HOME PAGE DEFAULT CHILD</h2>
+          </div>
+        );
+      }
+
+      const HomePageDynamicChild = () => {
+
+        const params = ReactRouterDOM.useParams();  
+
+        return (
+          <div>
+            <h2>HOME PAGE DYNAMIC CHILD WITH ID: {params.id}</h2>
+          </div>
+        );
+      }
 
       const CounterPage = () => {
 
         return (
           <div>
-            <ReactRouterDOM.NavLink to="/invalid-page">REDIRECT</ReactRouterDOM.NavLink>
+            <LinkContainer>
+                <Back/>
+                <ReactRouterDOM.NavLink to="invalid-page">REDIRECT</ReactRouterDOM.NavLink>
+            </LinkContainer>
             <h1>COUNTER PAGE</h1>
             <ReactRouterDOM.NavLink to="/">HOME</ReactRouterDOM.NavLink>
           </div>
@@ -83,7 +131,18 @@
                     childRoutes: [
                       {
                         path: '/',
-                        component: HomePage
+                        component: HomePage,
+                        childRoutes: [
+                          {
+                            path: '/',
+                            component: DefaultHomePageChild
+                          },
+                          {
+                            path: 'child/:id',
+                            component: HomePageDynamicChild
+                          },
+                          { redirect: { to: '/404' } }
+                        ]
                       },
                       {
                         path: 'counter',
